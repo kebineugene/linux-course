@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 4: Пакеты и сервисы - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>📦 Модуль 4</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: Пакетные менеджеры</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: apt</a></li>
+                <li><a href="#repositories" class="nav-item">Репозитории</a></li>
+                <li><a href="#other-install" class="nav-item">Другие способы установки</a></li>
+                <li><a href="#theory2" class="nav-item">Теория: Сервисы</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: systemctl</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 4: Пакеты и сервисы</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🛒 Установка ПО</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу пакеты и сервисы?</h3>
+                    <p>Пакеты — это способ распространения программ. Сервисы — программы, работающие в фоне. Админ должен уметь:</p>
+                    <ul>
+                        <li><strong> Устанавливать и обновлять ПО</strong> — безопасно, с проверкой зависимостей</li>
+                        <li><strong>⚙️ Управлять сервисами</strong> — запускать, останавливать, настраивать автозапуск</li>
+                        <li><strong>🔍 Находить нужные пакеты</strong> — когда не знаешь точное название</li>
+                        <li><strong>🛡️ Обновлять систему</strong> — закрывать уязвимости безопасности</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Аналогия:</strong> Пакетный менеджер — это как App Store, но для сервера. Ты говоришь "хочу nginx", и система сама скачивает программу, все её зависимости, устанавливает и настраивает.
+                </div>
+            </section>
+
+            <!-- THEORY 1 -->
+            <section id="theory1">
+                <h2 class="section-title">📖 Теория: Пакетные менеджеры</h2>
+                <div class="theory-block">
+                    <h3>Debian/Ubuntu: apt</h3>
+                    <p><code>apt</code> (Advanced Package Tool) — основной пакетный менеджер в Debian/Ubuntu. Работает с репозиториями — серверами, где хранятся пакеты.</p>
+                    <div class="code-block">
+                        <code>sudo apt update                # обновить список пакетов из репозиториев
+sudo apt upgrade               # обновить все установленные пакеты
+sudo apt install nginx         # установить nginx
+sudo apt remove nginx          # удалить (конфиги останутся)
+sudo apt purge nginx           # удалить вместе с конфигами
+sudo apt autoremove            # удалить ненужные зависимости</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong> Разница между remove и purge:</strong>
+                        <ul>
+                            <li><code>remove</code> — удаляет программу, но оставляет конфиги в <code>/etc/</code></li>
+                            <li><code>purge</code> — удаляет всё, включая конфиги (чистый снос)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Поиск и информация о пакетах</h3>
+                    <div class="code-block">
+                        <code>apt search "web server"        # поиск по описанию
+apt show nginx               # подробная информация о пакете
+dpkg -l | grep nginx         # проверить, установлен ли пакет
+apt list --installed         # список всех установленных пакетов
+apt-cache policy nginx       # показать версии и репозитории</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Зависимости пакетов</h3>
+                    <p>Пакеты часто зависят друг от друга. Например, nginx зависит от библиотек OpenSSL. <code>apt</code> автоматически устанавливает все зависимости.</p>
+                    <div class="code-block">
+                        <code>apt depends nginx              # показать зависимости пакета
+apt rdepends nginx           # показать, кто зависит от nginx
+sudo apt install -f          # исправить сломанные зависимости</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Никогда не удаляйте пакеты вручную через rm</strong> — это сломает базу данных пакетов. Используйте только <code>apt remove</code> или <code>dpkg --remove</code>.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Обновление системы безопасности</h3>
+                    <p>Регулярное обновление критично для безопасности сервера:</p>
+                    <div class="code-block">
+                        <code>sudo apt update && sudo apt upgrade -y
+# Или только обновления безопасности:
+sudo apt upgrade --only-upgrade</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> На production-серверах настройте автоматические обновления безопасности через пакет <code>unattended-upgrades</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 1 -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: apt</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>sudo apt update
+apt search htop
+sudo apt install -y htop
+dpkg -l | grep htop
+apt show htop
+sudo apt remove htop
+sudo apt purge htop
+sudo apt autoremove</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Обновление системы</h3>
+                    <div class="code-block">
+                        <code>sudo apt update
+sudo apt upgrade -y
+# Проверить, что нужно обновить:
+apt list --upgradable</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Внимание:</strong> Перед обновлением production-сервера всегда делайте бэкап! Некоторые обновления могут сломать совместимость.
+                    </div>
+                </div>
+            </section>
+
+            <!-- REPOSITORIES -->
+            <section id="repositories">
+                <h2 class="section-title">📚 Репозитории</h2>
+                <div class="theory-block">
+                    <h3>Что такое репозитории?</h3>
+                    <p>Репозитории — это серверы, где хранятся пакеты. Список репозиториев находится в <code>/etc/apt/sources.list</code> и файлах <code>/etc/apt/sources.list.d/</code>.</p>
+                    <div class="code-block">
+                        <code>cat /etc/apt/sources.list
+ls /etc/apt/sources.list.d/</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Добавление PPA (Personal Package Archive)</h3>
+                    <p>PPA — дополнительные репозитории от сообщества. Позволяют установить более новые версии программ.</p>
+                    <div class="code-block">
+                        <code>sudo add-apt-repository ppa:nginx/stable
+sudo apt update
+sudo apt install nginx</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Осторожно с PPA:</strong> Добавляйте только проверенные репозитории. Неофициальные PPA могут содержать вредоносное ПО.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Поиск пакета по файлу</h3>
+                    <p>Если вы знаете имя файла, но не знаете, в каком пакете он находится:</p>
+                    <div class="code-block">
+                        <code>apt-file search nginx.conf
+# Или через dpkg:
+dpkg -S nginx.conf</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OTHER INSTALL -->
+            <section id="other-install">
+                <h2 class="section-title">📦 Другие способы установки ПО</h2>
+                <div class="theory-block">
+                    <h3>Snap-пакеты</h3>
+                    <p>Snap — универсальный пакетный формат от Canonical. Пакеты изолированы, обновляются автоматически, работают на любом дистрибутиве.</p>
+                    <div class="code-block">
+                        <code>sudo snap install vlc
+snap list
+sudo snap remove vlc
+sudo snap refresh              # обновить все snap-пакеты</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Плюсы Snap:</strong> Изоляция, автообновление, кроссплатформенность.
+                        <br><strong>Минусы:</strong> Больший размер, медленнее запуск, меньше контроля.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Flatpak (альтернатива Snap)</h3>
+                    <p>Flatpak — ещё один универсальный формат, популярный в GNOME-окружении.</p>
+                    <div class="code-block">
+                        <code>flatpak install flathub org.gimp.GIMP
+flatpak list
+flatpak uninstall org.gimp.GIMP</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>AppImage</h3>
+                    <p>AppImage — переносимый исполняемый файл. Не требует установки, работает из коробки.</p>
+                    <div class="code-block">
+                        <code>chmod +x someapp.AppImage
+./someapp.AppImage</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Когда использовать AppImage:</strong> Когда нужно быстро протестировать программу без установки, или когда нужна конкретная версия.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Компиляция из исходников (базово)</h3>
+                    <p>Иногда нужно собрать программу из исходного кода. Это даёт максимальный контроль, но сложнее.</p>
+                    <div class="code-block">
+                        <code>./configure                # проверка зависимостей
+make                     # компиляция
+sudo make install        # установка</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Внимание:</strong> Программы, установленные через <code>make install</code>, не управляются пакетным менеджером. Их сложно обновлять и удалять.
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY 2 -->
+            <section id="theory2">
+                <h2 class="section-title"> Теория: Сервисы</h2>
+                <div class="theory-block">
+                    <h3>Что такое сервис?</h3>
+                    <p>Сервис (демон) — программа, работающая в фоне без интерактивного ввода. Например: веб-сервер nginx, база данных MySQL, SSH-сервер.</p>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Управление сервисами через systemctl</h3>
+                    <div class="code-block">
+                        <code>sudo systemctl status nginx          # статус сервиса
+sudo systemctl start nginx           # запустить
+sudo systemctl stop nginx            # остановить
+sudo systemctl restart nginx         # перезапустить
+sudo systemctl reload nginx          # перечитать конфиги без остановки
+sudo systemctl enable nginx          # автозапуск при загрузке
+sudo systemctl disable nginx         # отключить автозапуск
+sudo systemctl mask nginx            # полностью заблокировать запуск</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Разница между restart и reload:</strong>
+                        <ul>
+                            <li><code>restart</code> — полностью остановить и запустить заново (короткий downtime)</li>
+                            <li><code>reload</code> — перечитать конфиги без остановки (zero downtime)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Просмотр логов сервиса</h3>
+                    <p>Systemd собирает логи всех сервисов. Используйте <code>journalctl</code> для просмотра:</p>
+                    <div class="code-block">
+                        <code>sudo journalctl -u nginx             # логи nginx
+sudo journalctl -u nginx -f          # следить за логами в реальном времени
+sudo journalctl -u nginx --since today  # логи за сегодня
+sudo journalctl -u nginx -n 50       # последние 50 строк</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Критично для админа:</strong> Если сервис не запускается — первым делом смотрите логи через <code>journalctl -u &lt;сервис&gt;</code>.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Список сервисов</h3>
+                    <div class="code-block">
+                        <code>systemctl list-units --type=service    # все активные сервисы
+systemctl list-unit-files --type=service  # все unit-файлы
+systemctl --failed                         # упавшие сервисы</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 2 -->
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: systemctl</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>sudo systemctl list-units --type=service
+sudo systemctl start ssh
+sudo systemctl status ssh
+sudo systemctl enable ssh
+sudo journalctl -u ssh -n 20
+sudo systemctl restart ssh
+sudo systemctl stop ssh</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Работа с nginx</h3>
+                    <div class="code-block">
+                        <code>sudo apt install -y nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo systemctl status nginx
+curl localhost  # проверить, что nginx отвечает
+sudo journalctl -u nginx -f  # следить за логами (Ctrl+C для выхода)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Установка веб-сервера с нуля</h3>
+                    <div class="code-block">
+                        <code># Обновить систему
+sudo apt update && sudo apt upgrade -y
+# Установить nginx
+sudo apt install -y nginx
+# Запустить и добавить в автозагрузку
+sudo systemctl start nginx
+sudo systemctl enable nginx
+# Проверить статус
+sudo systemctl status nginx
+# Открыть браузер и перейти на http://<IP-сервера></code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Обновление системы безопасности</h3>
+                    <div class="code-block">
+                        <code># Проверить доступные обновления
+sudo apt update
+apt list --upgradable
+# Установить только обновления безопасности
+sudo apt upgrade -y
+# Перезагрузить, если обновилось ядро
+sudo reboot</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>Автоматизация:</strong> На production-серверах настройте <code>unattended-upgrades</code> для автоматической установки обновлений безопасности.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: Сервис не запускается — диагностика</h3>
+                    <div class="code-block">
+                        <code># 1. Проверить статус
+sudo systemctl status nginx
+# 2. Посмотреть логи
+sudo journalctl -u nginx -n 50
+# 3. Проверить конфиг
+sudo nginx -t
+# 4. Исправить ошибку в конфиге
+sudo nano /etc/nginx/nginx.conf
+# 5. Перезапустить
+sudo systemctl restart nginx</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 4: Найти, какой пакет содержит нужный файл</h3>
+                    <div class="code-block">
+                        <code># 1. Установить apt-file (если не установлен)
+sudo apt install -y apt-file
+sudo apt-file update
+
+# 2. Найти пакет
+apt-file search nginx.conf
+
+# 3. Посмотреть содержимое пакета
+apt-file list nginx</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "E: Unable to locate package"</strong>
+                    <ul>
+                        <li>Пакет не найден в репозиториях</li>
+                        <li>Выполните <code>sudo apt update</code> — возможно, списки устарели</li>
+                        <li>Проверьте название: <code>apt search &lt;часть_имени&gt;</code></li>
+                        <li>Возможно, нужен дополнительный репозиторий (PPA)</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Unmet dependencies" / "Broken packages"</strong>
+                    <ul>
+                        <li>Конфликт зависимостей</li>
+                        <li>Выполните: <code>sudo apt install -f</code> — исправить сломанные зависимости</li>
+                        <li>Или: <code>sudo apt --fix-broken install</code></li>
+                        <li>В крайнем случае: <code>sudo dpkg --configure -a</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Failed to start &lt;service&gt;.service"</strong>
+                    <ul>
+                        <li>Сервис не запустился</li>
+                        <li>Смотрите логи: <code>sudo journalctl -u &lt;сервис&gt; -n 50</code></li>
+                        <li>Проверьте конфиг: <code>sudo &lt;сервис&gt; -t</code> (например, <code>nginx -t</code>)</li>
+                        <li>Проверьте права на файлы и порты</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "No space left on device" при установке</strong>
+                    <ul>
+                        <li>Не хватает места на диске</li>
+                        <li>Проверьте: <code>df -h</code></li>
+                        <li>Очистите кэш: <code>sudo apt clean</code></li>
+                        <li>Удалите старые ядра: <code>sudo apt autoremove</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "The following packages have been kept back"</strong>
+                    <ul>
+                        <li>Некоторые пакеты не обновляются автоматически</li>
+                        <li>Выполните: <code>sudo apt dist-upgrade</code> (осторожно!)</li>
+                        <li>Или обновите конкретно: <code>sudo apt install &lt;пакет&gt;</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если что-то сломалось после установки пакета — посмотрите <code>/var/log/apt/history.log</code>, чтобы понять, что именно установилось.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Обнови списки пакетов: <code>sudo apt update</code></li>
+                        <li class="task-item">Найди пакет htop: <code>apt search htop</code></li>
+                        <li class="task-item">Установи htop: <code>sudo apt install -y htop</code></li>
+                        <li class="task-item">Проверь, что htop установлен: <code>dpkg -l | grep htop</code></li>
+                        <li class="task-item">Удали htop полностью: <code>sudo apt purge htop</code></li>
+                        <li class="task-item">Установи nginx и запусти сервис</li>
+                        <li class="task-item">Добавь nginx в автозагрузку: <code>sudo systemctl enable nginx</code></li>
+                        <li class="task-item">Проверь статус nginx: <code>sudo systemctl status nginx</code></li>
+                        <li class="task-item">Посмотри логи nginx: <code>sudo journalctl -u nginx -n 20</code></li>
+                        <li class="task-item">Перезапусти nginx: <code>sudo systemctl restart nginx</code></li>
+                        <li class="task-item">Установи любой snap-пакет (например, <code>snap install curl</code>)</li>
+                        <li class="task-item">Скачай AppImage любой программы и запусти её</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Найдите, в каком пакете находится файл <code>nginx.conf</code>: <code>apt-file search nginx.conf</code></li>
+                        <li class="task-item">Покажите все зависимости nginx: <code>apt depends nginx</code></li>
+                        <li class="task-item">Добавьте PPA репозиторий и установите пакет из него</li>
+                        <li class="task-item">Настройте автоматические обновления безопасности через <code>unattended-upgrades</code></li>
+                        <li class="task-item">Создайте свой systemd-сервис, который запускает скрипт каждые 5 минут (используйте timer)</li>
+                        <li class="task-item">Найдите все упавшие сервисы: <code>systemctl --failed</code> и попробуйте их исправить</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>apt update</code>
+                            <p>Обновить списки пакетов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt upgrade</code>
+                            <p>Обновить все пакеты</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt install pkg</code>
+                            <p>Установить пакет</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt remove pkg</code>
+                            <p>Удалить (конфиги останутся)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt purge pkg</code>
+                            <p>Удалить полностью</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt autoremove</code>
+                            <p>Удалить ненужные зависимости</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt search "text"</code>
+                            <p>Поиск пакета</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt show pkg</code>
+                            <p>Информация о пакете</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dpkg -l | grep pkg</code>
+                            <p>Проверить установку</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt depends pkg</code>
+                            <p>Показать зависимости</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl start srv</code>
+                            <p>Запустить сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl stop srv</code>
+                            <p>Остановить сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl restart srv</code>
+                            <p>Перезапустить сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl reload srv</code>
+                            <p>Перечитать конфиги</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl enable srv</code>
+                            <p>Включить автозапуск</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl disable srv</code>
+                            <p>Отключить автозапуск</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl status srv</code>
+                            <p>Статус сервиса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u srv</code>
+                            <p>Логи сервиса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u srv -f</code>
+                            <p>Следить за логами</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>snap install pkg</code>
+                            <p>Установить snap-пакет</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod +x file.AppImage</code>
+                            <p>Сделать AppImage исполняемым</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>./configure && make && make install</code>
+                            <p>Собрать из исходников</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>add-apt-repository ppa:name</code>
+                            <p>Добавить PPA репозиторий</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt-file search filename</code>
+                            <p>Найти пакет по файлу</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module3.html" class="nav-btn">← Модуль 3: Процессы</a>
+                <a href="module5.html" class="nav-btn">Модуль 5: Демоны →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

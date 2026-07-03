@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 6: Безопасность - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>🔒 Модуль 6</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: Пользователи</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: пользователи</a></li>
+                <li><a href="#theory2" class="nav-item">Теория: Sudo и права</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: sudoers</a></li>
+                <li><a href="#ssh" class="nav-item">SSH: ключи и защита</a></li>
+                <li><a href="#fail2ban" class="nav-item">Fail2ban и UFW</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 6: Безопасность</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <section id="intro">
+                <h2 class="section-title">🛡️ Безопасность — это привычка</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу безопасность?</h3>
+                    <p>Безопасность в Linux строится на принципе <strong>наименьших привилегий</strong>: пользователь или сервис должен иметь ровно столько прав, сколько нужно для работы, и ни битом больше.</p>
+                    <ul>
+                        <li><strong>👥 Управление доступом</strong> — кто может входить в систему и что делать</li>
+                        <li><strong>🔑 Аутентификация</strong> — как подтверждать личность (ключи вместо паролей)</li>
+                        <li><strong>🚪 Защита периметра</strong> — фаерволы и защита от брутфорса</li>
+                        <li><strong>📝 Аудит</strong> — понимание, кто и что делал в системе</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Золотое правило:</strong> Никогда не работайте под root в повседневной жизни. Используйте обычного пользователя и <code>sudo</code> для привилегированных команд.
+                </div>
+            </section>
+
+            <section id="theory1">
+                <h2 class="section-title"> Теория: Пользователи и группы</h2>
+                <div class="theory-block">
+                    <h3>Где хранятся пользователи?</h3>
+                    <p>В Linux вся информация о пользователях хранится в текстовых файлах. Это удобно для администрирования и бэкапов.</p>
+                    <div class="code-block">
+                        <code>cat /etc/passwd          # список всех пользователей (имя, UID, домашняя папка, оболочка)
+cat /etc/shadow          # хеши паролей (доступен только root!)
+cat /etc/group           # список групп</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Формат /etc/passwd:</strong> <code>username:x:UID:GID:comment:home_dir:shell</code>
+                        <br>Если оболочка <code>/usr/sbin/nologin</code> или <code>/bin/false</code> — пользователь не может войти в систему (используется для сервисов).
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Управление пользователями</h3>
+                    <div class="code-block">
+                        <code>sudo useradd -m -s /bin/bash username   # создать с домашней папкой и bash
+sudo passwd username                          # установить пароль
+sudo userdel -r username                      # удалить пользователя и его домашнюю папку
+sudo usermod -aG groupname username           # ДОБАВИТЬ в группу (ВАЖНО: флаг -a!)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Критично:</strong> Команда <code>usermod -G group user</code> (без флага <code>-a</code>) <strong>удаляет</strong> пользователя из всех остальных групп! Всегда используйте <code>-aG</code> (append).
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: пользователи</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>sudo useradd -m -s /bin/bash developer
+sudo passwd developer
+sudo groupadd webdevs
+sudo usermod -aG webdevs developer
+id developer               # проверить UID и группы
+su - developer             # переключиться на пользователя
+groups                     # проверить текущие группы
+exit                       # вернуться назад</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="theory2">
+                <h2 class="section-title"> Теория: Sudo и привилегии</h2>
+                <div class="theory-block">
+                    <h3>Как работает sudo?</h3>
+                    <p><code>sudo</code> позволяет запускать команды от имени другого пользователя (обычно root). Настройки хранятся в <code>/etc/sudoers</code>.</p>
+                    <div class="code-block">
+                        <code>sudo command             # выполнить команду от root
+sudo -u username cmd     # выполнить от имени конкретного пользователя
+sudo -l                  # посмотреть свои sudo-права
+sudo -i                  # получить root-оболочку (аналог su -)</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Команда <code>sudo -l</code> — первая, которую должен выполнить админ, получив доступ к новому серверу, чтобы понять свои полномочия.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Редактирование sudoers</h3>
+                    <p>Никогда не редактируйте <code>/etc/sudoers</code> обычным редактором! Используйте <code>visudo</code> — он проверяет синтаксис перед сохранением. Ошибка в этом файле может заблокировать доступ к sudo навсегда.</p>
+                    <div class="code-block">
+                        <code>sudo visudo
+
+# Добавить полные права пользователю:
+username ALL=(ALL:ALL) ALL
+
+# Разрешить только конкретную команду без пароля:
+username ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart nginx
+
+# Разрешить всю группу:
+%adminbot ALL=(ALL) ALL</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        🚨 <strong>Опасно:</strong> Если вы сохраните файл с синтаксической ошибкой через обычный редактор — вы потеряете sudo. <code>visudo</code> не даст этого сделать.
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: sudoers</h2>
+                <div class="practice-block">
+                    <h3>Настройка прав</h3>
+                    <div class="code-block">
+                        <code>sudo -l                          # посмотреть свои права
+sudo visudo                        # открыть редактор
+# Добавить: developer ALL=(ALL) NOPASSWD: /usr/bin/apt update
+sudo -u developer sudo apt update  # проверить, что работает без пароля</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="ssh">
+                <h2 class="section-title"> SSH: ключи и защита</h2>
+                <div class="theory-block">
+                    <h3>Аутентификация по ключам</h3>
+                    <p>Пароли можно подобрать. Криптографические ключи (ED25519 или RSA 4096) — практически нет. Это стандарт для любых серверов.</p>
+                    <div class="code-block">
+                        <code># Генерация ключа (на локальной машине):
+ssh-keygen -t ed25519 -C "admin@company.com"
+
+# Копирование публичного ключа на сервер:
+ssh-copy-id user@server_ip
+
+# Ручное копирование (если ssh-copy-id нет):
+cat ~/.ssh/id_ed25519.pub | ssh user@server "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Права на SSH-файлы критичны!</strong>
+                        <ul>
+                            <li><code>~/.ssh</code> → <code>700</code> (drwx------)</li>
+                            <li><code>~/.ssh/authorized_keys</code> → <code>600</code> (-rw-------)</li>
+                            <li>Если права шире — SSH-сервер откажется принимать ключи!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Hardening SSH-сервера</h3>
+                    <p>Настройки находятся в <code>/etc/ssh/sshd_config</code>. После изменений нужен рестарт: <code>sudo systemctl restart sshd</code></p>
+                    <div class="code-block">
+                        <code>PermitRootLogin no             # запретить вход под root
+PasswordAuthentication no      # только ключи (сначала убедитесь, что ключ работает!)
+PubkeyAuthentication yes       # разрешить ключи
+Port 2222                      # сменить порт (защита от простых ботов, не панацея)
+MaxAuthTries 3                 # максимум попыток ввода
+AllowUsers admin developer     # разрешить вход только конкретным пользователям</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        🚨 <strong>КРИТИЧНО:</strong> Перед тем как отключить парольную аутентификацию или сменить порт, <strong>откройте второй терминал</strong> и проверьте, что вы можете войти по ключу. Иначе вы заблокируете себя снаружи!
+                    </div>
+                </div>
+            </section>
+
+            <section id="fail2ban">
+                <h2 class="section-title"> Fail2ban и UFW</h2>
+                <div class="theory-block">
+                    <h3>Fail2ban: защита от брутфорса</h3>
+                    <p>Fail2ban сканирует логи и банит IP-адреса, с которых происходит слишком много неудачных попыток входа. Обязателен для любого сервера, доступного из интернета.</p>
+                    <div class="code-block">
+                        <code>sudo apt install -y fail2ban
+sudo systemctl enable --now fail2ban
+sudo fail2ban-client status sshd       # посмотреть статус
+sudo fail2ban-client set sshd unbanip 1.2.3.4  # разбанить IP</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>UFW: простой фаервол</h3>
+                    <p>UFW (Uncomplicated Firewall) — надстройка над iptables. Прост в использовании.</p>
+                    <div class="code-block">
+                        <code>sudo ufw allow ssh             # разрешить SSH (порт 22)
+sudo ufw allow 80/tcp            # разрешить HTTP
+sudo ufw allow 443/tcp           # разрешить HTTPS
+sudo ufw allow from 192.168.1.0/24  # разрешить только из локальной сети
+sudo ufw status verbose          # посмотреть правила
+sudo ufw enable                  # включить фаервол
+sudo ufw disable                 # выключить</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Внимание:</strong> Всегда выполняйте <code>sudo ufw allow ssh</code> <strong>ДО</strong> включения фаервола (<code>ufw enable</code>). Иначе вы потеряете доступ к серверу!
+                    </div>
+                </div>
+            </section>
+
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Онбординг нового разработчика</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём пользователя
+sudo useradd -m -s /bin/bash alex
+sudo passwd alex
+
+# 2. Добавляем в нужные группы
+sudo usermod -aG docker,sudo alex
+
+# 3. Просим разработчика прислать публичный ключ
+# Копируем ключ:
+sudo mkdir -p /home/alex/.ssh
+sudo nano /home/alex/.ssh/authorized_keys
+# Вставляем публичный ключ
+
+# 4. Выставляем правильные права
+sudo chown -R alex:alex /home/alex/.ssh
+sudo chmod 700 /home/alex/.ssh
+sudo chmod 600 /home/alex/.ssh/authorized_keys</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Чек-лист защиты нового VPS</h3>
+                    <ol>
+                        <li>Обновить систему: <code>apt update && apt upgrade</code></li>
+                        <li>Создать пользователя с sudo, отключить root-логин</li>
+                        <li>Настроить SSH-ключи, отключить пароли</li>
+                        <li>Установить и включить <code>fail2ban</code></li>
+                        <li>Настроить UFW: разрешить SSH, HTTP, HTTPS, включить</li>
+                        <li>Настроить автоматические обновления безопасности</li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Permission denied (publickey)" при входе по SSH</strong>
+                    <ul>
+                        <li>Проверьте права на <code>~/.ssh</code> (700) и <code>authorized_keys</code> (600) на сервере</li>
+                        <li>Проверьте, что публичный ключ скопирован полностью (одной строкой)</li>
+                        <li>Попробуйте войти с отладкой: <code>ssh -v user@server</code></li>
+                        <li>Проверьте <code>PubkeyAuthentication yes</code> в <code>sshd_config</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "sudo: no valid sudoers sources found"</strong>
+                    <ul>
+                        <li>Пользователь не добавлен в группу sudo/wheel</li>
+                        <li>Выполните от root: <code>usermod -aG sudo username</code></li>
+                        <li>Или проверьте синтаксис <code>/etc/sudoers</code> через <code>visudo -c</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Заблокировал себя на сервере после настройки SSH/UFW</strong>
+                    <ul>
+                        <li>Используйте консоль восстановления через панель хостинга (VNC/Console)</li>
+                        <li>Войдите как root, исправьте <code>/etc/ssh/sshd_config</code> или выполните <code>ufw disable</code></li>
+                        <li>Перезапустите SSH: <code>systemctl restart sshd</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Bad owner or permissions on /home/user/.ssh/config"</strong>
+                    <ul>
+                        <li>SSH очень строг к правам. Владелец файлов должен быть пользователем, а не root</li>
+                        <li>Исправление: <code>chown -R $USER:$USER ~/.ssh && chmod 700 ~/.ssh && chmod 600 ~/.ssh/*</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если что-то пошло не так с SSH — смотрите логи: <code>sudo journalctl -u ssh -f</code> в реальном времени, пока пытаетесь подключиться. Там будет точная причина отказа.
+                </div>
+            </section>
+
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создай пользователя <code>adminbot</code> с домашней папкой и оболочкой bash</li>
+                        <li class="task-item">Установи пароль для <code>adminbot</code></li>
+                        <li class="task-item">Добавь <code>adminbot</code> в группу <code>sudo</code> (используя <code>-aG</code>!)</li>
+                        <li class="task-item">Проверь права пользователя через <code>id adminbot</code></li>
+                        <li class="task-item">Сгенерируй SSH-ключ на локальной машине: <code>ssh-keygen -t ed25519</code></li>
+                        <li class="task-item">Посмотри свои sudo-права: <code>sudo -l</code></li>
+                        <li class="task-item">Запрети root-логин по SSH в <code>sshd_config</code> (<code>PermitRootLogin no</code>)</li>
+                        <li class="task-item">Установи fail2ban и проверь его статус</li>
+                        <li class="task-item">Разреши SSH и HTTP в UFW, затем включи фаервол</li>
+                        <li class="task-item">Посмотри активные правила UFW: <code>sudo ufw status verbose</code></li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Настройте sudo так, чтобы пользователь <code>developer</code> мог перезапускать только nginx без пароля</li>
+                        <li class="task-item">Смените порт SSH на 2222 и настройте UFW для нового порта</li>
+                        <li class="task-item">Настройте fail2ban так, чтобы он банит IP после 3 неудачных попыток на 1 час (создайте <code>jail.local</code>)</li>
+                        <li class="task-item">Создайте пользователя с оболочкой <code>/usr/sbin/nologin</code> и попробуйте войти под ним — объясните результат</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>useradd -m -s /bin/bash u</code>
+                            <p>Создать пользователя</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>passwd user</code>
+                            <p>Сменить пароль</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>usermod -aG group user</code>
+                            <p>Добавить в группу (append!)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>userdel -r user</code>
+                            <p>Удалить с домашней папкой</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>id user</code>
+                            <p>UID и группы пользователя</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /etc/passwd</code>
+                            <p>Список всех пользователей</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo -l</code>
+                            <p>Мои sudo-права</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>visudo</code>
+                            <p>Безопасно редактировать sudoers</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ssh-keygen -t ed25519</code>
+                            <p>Генерация SSH-ключа</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ssh-copy-id user@host</code>
+                            <p>Копировать ключ на сервер</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ssh -v user@host</code>
+                            <p>SSH с отладкой</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>PermitRootLogin no</code>
+                            <p>Запрет root по SSH</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>PasswordAuthentication no</code>
+                            <p>Только ключи</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl restart sshd</code>
+                            <p>Перезапустить SSH</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>apt install fail2ban</code>
+                            <p>Установить защиту от брутфорса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ufw allow ssh</code>
+                            <p>Разрешить SSH в фаерволе</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ufw allow 80/tcp</code>
+                            <p>Разрешить HTTP</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ufw enable</code>
+                            <p>Включить фаервол</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ufw status verbose</code>
+                            <p>Статус фаервола</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod 700 ~/.ssh</code>
+                            <p>Права на папку .ssh</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod 600 ~/.ssh/authorized_keys</code>
+                            <p>Права на файл ключей</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module5.html" class="nav-btn">← Модуль 5: Демоны</a>
+                <a href="module7.html" class="nav-btn">Модуль 7: Траблшутинг →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

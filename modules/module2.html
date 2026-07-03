@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 2: Права доступа - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <h2>🔐 Модуль 2</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: Права</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: chmod</a></li>
+                <li><a href="#theory2" class="nav-item">Теория: Владение</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: chown</a></li>
+                <li><a href="#theory3" class="nav-item">Теория: Спец-биты</a></li>
+                <li><a href="#umask" class="nav-item">Umask</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <div class="header">
+                <h1>Модуль 2: Права доступа</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🎯 Кто что может?</h2>
+                <div class="theory-block">
+                    <h3>Зачем нужны права?</h3>
+                    <p>Права в Linux — это <strong>основа безопасности</strong>. Они решают три критические задачи:</p>
+                    <ul>
+                        <li><strong>🛡️ Защита системных файлов</strong> от случайного изменения (чтобы не сломать систему)</li>
+                        <li><strong>👥 Изоляция пользователей</strong> — сосед по серверу не прочитает ваши файлы</li>
+                        <li><strong> Безопасность сервисов</strong> — веб-сервер не должен иметь доступ ко всей системе</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Реальный пример:</strong> Если вы оставите права <code>777</code> на папке с сайтом — любой пользователь сможет изменить ваш код. Это дыра в безопасности.
+                </div>
+            </section>
+
+            <!-- THEORY: PERMISSIONS -->
+            <section id="theory1">
+                <h2 class="section-title">📖 Теория: Права</h2>
+                <div class="theory-block">
+                    <h3>Три уровня доступа</h3>
+                    <p>Каждый файл имеет три группы прав:</p>
+                    <ul>
+                        <li><strong>User (u)</strong> — владелец файла</li>
+                        <li><strong>Group (g)</strong> — группа файла</li>
+                        <li><strong>Others (o)</strong> — все остальные</li>
+                    </ul>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Как читать <code>-rwxr-xr--</code></h3>
+                    <p>Каждый символ имеет значение:</p>
+                    <div class="code-block">
+                        <code>Position: 1  2  3  4  5  6  7  8  9  10
+          -  r  w  x  r  -  x  r  -  -
+          ^  ^^^^^  ^^^^^  ^^^^^
+          |  User   Group  Others
+          Тип файла:
+            - = обычный файл
+            d = папка (directory)
+            l = ссылка (link)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong> Мнемоника:</strong> <code>r</code> = read (4), <code>w</code> = write (2), <code>x</code> = execute (1). Сумма = числовое значение.
+                        <br><br>
+                        Пример: <code>rwx</code> = 4+2+1 = <strong>7</strong>, <code>r-x</code> = 4+0+1 = <strong>5</strong>, <code>r--</code> = 4+0+0 = <strong>4</strong>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Числовое представление</h3>
+                    <div class="code-block">
+                        <code>755 = rwxr-xr-x  (владелец: всё, группа и остальные: чтение+выполнение)
+644 = rw-r--r--  (владелец: чтение+запись, остальные: только чтение)
+700 = rwx------  (только владелец имеет полный доступ)
+600 = rw-------  (только владелец может читать/писать)
+777 = rwxrwxrwx  (ВСЕ имеют полный доступ — ОПАСНО!)
+666 = rw-rw-rw-  (все могут читать и писать — опасно для конфигов)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE: CHMOD -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: chmod</h2>
+                <div class="practice-block">
+                    <h3>Изменение прав</h3>
+                    <div class="code-block">
+                        <code>chmod 755 script.sh      # rwxr-xr-x (стандарт для скриптов)
+chmod 644 file.txt       # rw-r--r-- (стандарт для файлов)
+chmod u+x script.sh      # добавить выполнение владельцу
+chmod go-w file.txt      # убрать запись у группы и остальных
+chmod -R 755 /var/www    # рекурсивно на папку и всё внутри</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>touch myscript.sh
+ls -l myscript.sh              # посмотреть права по умолчанию (-rw-r--r--)
+chmod +x myscript.sh           # сделать исполняемым
+ls -l myscript.sh              # теперь -rwxr-xr-x
+chmod 600 myscript.sh          # только владелец может читать/писать
+ls -l myscript.sh              # теперь -rw-------</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="warning-block">
+                    ⚠️ <strong>Никогда не ставьте 777</strong> на production-серверах! Это открывает доступ всем пользователям к записи и выполнению.
+                </div>
+            </section>
+
+            <!-- THEORY: OWNERSHIP -->
+            <section id="theory2">
+                <h2 class="section-title">📖 Теория: Владение</h2>
+                <div class="theory-block">
+                    <h3>Кто я и мои группы</h3>
+                    <p>Прежде чем менять владельца, нужно понять, кто вы:</p>
+                    <div class="code-block">
+                        <code>whoami              # моё имя пользователя
+id                  # UID, GID и все мои группы
+groups              # список групп текущего пользователя
+id username         # информация о другом пользователе</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>chown — смена владельца и группы</h3>
+                    <div class="code-block">
+                        <code>sudo chown user:group file.txt
+sudo chown -R user:group /var/www    # рекурсивно
+sudo chown user file.txt             # только владелец, группа не меняется
+sudo chown :group file.txt           # только группа, владелец не меняется</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Важно:</strong> Обычные пользователи НЕ могут менять владельца файла. Только root через <code>sudo</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE: CHOWN -->
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: chown</h2>
+                <div class="practice-block">
+                    <div class="code-block">
+                        <code>whoami
+id
+sudo touch /tmp/testfile.txt
+ls -l /tmp/testfile.txt
+sudo chown nobody:nogroup /tmp/testfile.txt
+ls -l /tmp/testfile.txt
+# Вернём обратно:
+sudo chown $USER:$USER /tmp/testfile.txt</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Переменная <code>$USER</code></strong> автоматически подставляет имя текущего пользователя. Удобно для скриптов!
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>📋 Реальные сценарии прав</h3>
+                    <div class="code-block">
+                        <code># SSH-ключи — только владелец!
+chmod 600 ~/.ssh/id_rsa
+chmod 700 ~/.ssh
+
+# Веб-файлы — владелец пишет, все читают
+chmod 644 /var/www/html/index.html
+chmod 755 /var/www/html/
+
+# Скрипты — все могут выполнять, писать только владелец
+chmod 755 /usr/local/bin/myscript.sh
+
+# Конфиги — чтение для всех, запись только root
+chmod 644 /etc/nginx/nginx.conf
+
+# Временная папка — все пишут, удалять только свои файлы
+chmod 1777 /tmp</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY: SPECIAL BITS -->
+            <section id="theory3">
+                <h2 class="section-title">📖 Теория: Спец-биты</h2>
+                <div class="theory-block">
+                    <h3>SUID, SGID и Sticky bit</h3>
+                    <p>Три специальных бита расширяют стандартные права:</p>
+
+                    <p><strong>SUID (Set User ID)</strong> — программа выполняется от имени владельца файла, а не того, кто её запустил:</p>
+                    <div class="code-block">
+                        <code>chmod u+s /usr/bin/passwd
+# passwd выполняется от root, даже если запускает обычный пользователь
+# Поэтому любой может менять свой пароль</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+
+                    <p><strong>SGID (Set Group ID)</strong> на папке — новые файлы наследуют группу папки:</p>
+                    <div class="code-block">
+                        <code>mkdir /var/www/shared
+chown :developers /var/www/shared
+chmod g+s /var/www/shared
+# Теперь любой файл, созданный в этой папке, будет принадлежать группе developers
+# Даже если его создал пользователь из другой группы!</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Зачем SGID?</strong> Для совместной работы команды. Все файлы проекта автоматически принадлежат группе проекта.
+                    </div>
+
+                    <p><strong>Sticky bit</strong> — в папке пользователи могут удалять только свои файлы:</p>
+                    <div class="code-block">
+                        <code>chmod +t /tmp
+# В /tmp любой может создавать файлы, но удалять только свои
+# Это защищает от случайного удаления чужих файлов</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Как увидеть спец-биты в <code>ls -l</code></h3>
+                    <div class="code-block">
+                        <code>-rwsr-xr-x  1 root root  ...  passwd      # SUID (s вместо x у владельца)
+-rwxr-sr-x  1 root developers ...  shared_script  # SGID (s вместо x у группы)
+drwxrwxrwt  2 root root  ...  tmp       # Sticky (t вместо x у остальных)</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Мнемоника:</strong> Маленькая <code>s</code>/<code>t</code> = бит установлен И есть execute. Большая <code>S</code>/<code>T</code> = бит установлен, но execute НЕТ.
+                    </div>
+                </div>
+            </section>
+
+            <!-- UMASK (NEW!) -->
+            <section id="umask">
+                <h2 class="section-title">⚙️ Umask: права по умолчанию</h2>
+                <div class="theory-block">
+                    <h3>Что такое umask?</h3>
+                    <p>Когда вы создаёте файл или папку, система автоматически назначает права. <code>umask</code> определяет, какие биты <strong>убрать</strong> из максимальных.</p>
+                    <div class="code-block">
+                        <code>umask              # показать текущее значение (обычно 0022 или 0002)
+umask 0022           # новые файлы: 644, папки: 755
+umask 0002           # новые файлы: 664, папки: 775</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧮 Как считать:</strong>
+                        <br>Максимум для файлов: <code>666</code> (rw-rw-rw-)
+                        <br>Максимум для папок: <code>777</code> (rwxrwxrwx)
+                        <br><br>
+                        <code>666 - 022 = 644</code> (файлы)
+                        <br>
+                        <code>777 - 022 = 755</code> (папки)
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Практика с umask</h3>
+                    <div class="code-block">
+                        <code>umask                    # посмотреть текущее
+touch test1.txt
+ls -l test1.txt              # права по умолчанию
+
+umask 0077                   # более строгие права
+touch test2.txt
+ls -l test2.txt              # теперь только владелец имеет доступ
+
+umask 0022                   # вернуть стандартное значение</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Если вы работаете в команде и создаёте файлы для общего доступа, добавьте <code>umask 0002</code> в <code>~/.bashrc</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING (NEW!) -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Permission denied" при chmod?</strong>
+                    <ul>
+                        <li>Вы не владелец файла. Используйте <code>sudo chmod</code></li>
+                        <li>Или смените владельца: <code>sudo chown $USER file.txt</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Operation not permitted" при chown?</strong>
+                    <ul>
+                        <li>Нужен <code>sudo</code>. Обычные пользователи не могут менять владельца.</li>
+                        <li>Команда: <code>sudo chown user:group file.txt</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Файл стал недоступен после <code>chmod 000</code>?</strong>
+                    <ul>
+                        <li>Верните права: <code>chmod 644 file.txt</code> (если вы владелец)</li>
+                        <li>Или: <code>sudo chmod 644 file.txt</code></li>
+                        <li>Или через владельца: <code>chmod u+rw file.txt</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "chmod: cannot access" — файл не найден?</strong>
+                    <ul>
+                        <li>Проверьте путь: <code>ls -la file.txt</code></li>
+                        <li>Опечатка в имени? Используйте <code>Tab</code> для автодополнения</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ SGID не работает — файлы не наследуют группу?</strong>
+                    <ul>
+                        <li>Проверьте, что бит установлен: <code>ls -ld dir/</code> (должна быть <code>s</code> в группе)</li>
+                        <li>SGID работает только на <strong>папках</strong>, не на файлах</li>
+                        <li>Устанавливайте: <code>chmod g+s dir/</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальная проверка:</strong> Всегда смотрите на результат через <code>ls -la</code> после изменения прав. Если не то, что ожидали — разбирайтесь сразу.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создай файл <code>secret.txt</code> и выдай права <code>600</code> (только владелец читает/пишет)</li>
+                        <li class="task-item">Сделай скрипт <code>run.sh</code> исполняемым для всех (<code>755</code>)</li>
+                        <li class="task-item">Посмотри права через <code>ls -l</code> и убедись, что они правильные</li>
+                        <li class="task-item">Смени владельца <code>secret.txt</code> на <code>nobody:nogroup</code> через sudo</li>
+                        <li class="task-item">Верни владельца обратно себе: <code>sudo chown $USER:$USER secret.txt</code></li>
+                        <li class="task-item">Создай папку <code>shared</code> и поставь SGID, чтобы файлы внутри наследовали группу</li>
+                        <li class="task-item">Проверь sticky bit на <code>/tmp</code> командой <code>ls -ld /tmp</code></li>
+                        <li class="task-item">Посмотри свой umask и создай файл — проверь права по умолчанию</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создайте файл, который может <strong>только читать</strong> владелец, а группа и остальные — ничего (<code>400</code>)</li>
+                        <li class="task-item">Создайте скрипт, который могут выполнять все, но писать только владелец (<code>755</code>)</li>
+                        <li class="task-item">Создайте папку, где все могут создавать файлы, но удалять только свои (sticky bit + <code>777</code>)</li>
+                        <li class="task-item">Проверьте: попробуйте удалить чужой файл в этой папке — должно не получиться!</li>
+                        <li class="task-item">Найдите все файлы с SUID в системе: <code>find / -perm -4000 2>/dev/null</code></li>
+                        <li class="task-item">Установите umask <code>0077</code> и создайте файл — убедитесь, что права стали <code>600</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>ls -la</code>
+                            <p>Посмотреть права</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod 755 file</code>
+                            <p>rwxr-xr-x</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod 644 file</code>
+                            <p>rw-r--r--</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod u+x file</code>
+                            <p>Добавить выполнение владельцу</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod go-w file</code>
+                            <p>Убрать запись у группы и остальных</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chown user:group file</code>
+                            <p>Сменить владельца и группу</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chown -R user:group dir/</code>
+                            <p>Рекурсивно сменить владельца</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>whoami</code>
+                            <p>Моё имя пользователя</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>id</code>
+                            <p>UID, GID и все группы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>groups</code>
+                            <p>Список групп</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod u+s file</code>
+                            <p>SUID — выполняется от владельца</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod g+s dir</code>
+                            <p>SGID — файлы наследуют группу</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod +t dir</code>
+                            <p>Sticky bit — удалять только свои</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>umask</code>
+                            <p>Показать права по умолчанию</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>umask 0022</code>
+                            <p>Установить umask</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>find / -perm -4000</code>
+                            <p>Найти файлы с SUID</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod 600 ~/.ssh/id_rsa</code>
+                            <p>SSH-ключ — только владелец!</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>chmod 700 ~/.ssh</code>
+                            <p>Папка .ssh — только владелец</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NAV BUTTONS -->
+            <div class="nav-buttons">
+                <a href="module1.html" class="nav-btn">← Модуль 1: Файлы</a>
+                <a href="module3.html" class="nav-btn">Модуль 3: Процессы →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

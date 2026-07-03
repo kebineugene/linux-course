@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 10: Bash-скрипты и автоматизация - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>⚡ Модуль 10</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Основы скриптов</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: первый скрипт</a></li>
+                <li><a href="#env-vars" class="nav-item">Переменные окружения</a></li>
+                <li><a href="#best-practices" class="nav-item">Best practices</a></li>
+                <li><a href="#theory2" class="nav-item">Условия и циклы</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: циклы</a></li>
+                <li><a href="#git" class="nav-item">Git для админа</a></li>
+                <li><a href="#cron" class="nav-item">Планировщик cron</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 10: Bash-скрипты и автоматизация</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title"> Превращаем команды в программы</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу скрипты?</h3>
+                    <p>Bash-скрипты — это просто текстовые файлы с командами. Ты уже знаешь команды, осталось добавить логику — и рутина исчезнет. Админ без скриптов — как повар без ножа: можно, но медленно и неудобно.</p>
+                    <ul>
+                        <li><strong>⚡ Автоматизация</strong> — бэкапы, мониторинг, деплой без ручного вмешательства</li>
+                        <li><strong>🔄 Повторяемость</strong> — один раз написал, используешь сотни раз</li>
+                        <li><strong>📝 Документирование</strong> — скрипт показывает, что и как делается</li>
+                        <li><strong>🛡️ Надёжность</strong> — скрипт не забудет шаг, не опечатается</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong> Аналогия:</strong> Если команды — это слова, то скрипты — это предложения. Ты учишься составлять инструкции, которые компьютер выполняет точно и быстро.
+                </div>
+            </section>
+
+            <!-- THEORY 1 -->
+            <section id="theory1">
+                <h2 class="section-title">📖 Основы скриптов</h2>
+                <div class="theory-block">
+                    <h3>Структура скрипта</h3>
+                    <p>Каждый скрипт начинается с <strong>шебанга</strong> — первой строки, которая указывает, какой интерпретатор использовать.</p>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+# Это комментарий — игнорируется интерпретатором
+echo "Привет, $USER!"
+echo "Сегодня: $(date)"
+echo "Рабочая директория: $(pwd)"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong> Шебанг (#!):</strong>
+                        <ul>
+                            <li><code>#!/bin/bash</code> — использовать bash</li>
+                            <li><code>#!/usr/bin/env bash</code> — более переносимый вариант (ищет bash в PATH)</li>
+                            <li><code>#!/bin/sh</code> — POSIX-совместимый shell (менее функциональный)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Переменные и аргументы</h3>
+                    <div class="code-block">
+                        <code># Обычные переменные
+NAME="Мир"
+echo "Привет, $NAME"
+
+# Аргументы командной строки
+echo "Имя скрипта: $0"
+echo "Первый аргумент: $1"
+echo "Второй аргумент: $2"
+echo "Все аргументы: $@"
+echo "Количество аргументов: $#"
+
+# Специальные переменные
+echo "PID процесса: $$"
+echo "Код возврата последней команды: $?"</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Всегда заключайте переменные в кавычки: <code>"$NAME"</code> вместо <code>$NAME</code>. Это защищает от проблем с пробелами в значениях.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 1 -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: первый скрипт</h2>
+                <div class="practice-block">
+                    <h3>Создание и запуск</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём файл
+nano ~/hello.sh
+
+# 2. Пишем содержимое:
+#!/bin/bash
+echo "Привет, $USER!"
+echo "Сегодня: $(date)"
+
+# 3. Делаем исполняемым
+chmod +x ~/hello.sh
+
+# 4. Запускаем
+./hello.sh</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ️ <strong>Важно:</strong> Если забудете <code>chmod +x</code>, получите ошибку "Permission denied". Альтернатива запуска без прав: <code>bash hello.sh</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ENV VARS -->
+            <section id="env-vars">
+                <h2 class="section-title">🌍 Переменные окружения</h2>
+                <div class="theory-block">
+                    <h3>Что это?</h3>
+                    <p>Переменные окружения хранят настройки, влияющие на поведение программ. Самые важные: <code>PATH</code> (где искать исполняемые файлы), <code>HOME</code> (домашняя директория), <code>USER</code>.</p>
+                    <div class="code-block">
+                        <code># Просмотр переменных
+echo $PATH
+echo $HOME
+echo $USER
+
+# Создание/изменение
+export MYVAR="hello"
+echo $MYVAR
+
+# Показать все переменные
+env
+printenv</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Сохранение:</strong> Чтобы переменная сохранялась при новых сессиях, добавьте <code>export</code> в <code>~/.bashrc</code> или <code>~/.bash_profile</code>.
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Практика с PATH</h3>
+                    <div class="code-block">
+                        <code># Посмотреть текущий PATH
+echo $PATH
+
+# Добавить папку в PATH (временно)
+export PATH="$PATH:/home/user/scripts"
+
+# Проверить, что работает
+which myscript.sh
+
+# Чтобы сделать постоянно — добавить в ~/.bashrc:
+echo 'export PATH="$PATH:/home/user/scripts"' >> ~/.bashrc</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BEST PRACTICES -->
+            <section id="best-practices">
+                <h2 class="section-title">⭐ Best practices для скриптов</h2>
+                <div class="theory-block">
+                    <h3>set -euo pipefail: режим строгой проверки</h3>
+                    <p>Эти три флага делают скрипт надёжнее. Добавляйте их в начало каждого серьёзного скрипта.</p>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+set -euo pipefail
+
+# set -e: выйти при ошибке (exit on error)
+# set -u: ошибка при использовании неопределённой переменной
+# set -o pipefail: если команда в пайпе упала — весь пайп упал
+
+echo "Этот скрипт надёжный"
+rm /nonexistent/file  # скрипт остановится здесь</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Внимание:</strong> С <code>set -e</code> скрипт остановится при первой ошибке. Иногда это нежелательно (например, при проверке условий). В таких случаях используйте <code>|| true</code>: <code>rm file || true</code>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Функции в bash</h3>
+                    <p>Функции помогают организовать код и избежать повторений.</p>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+
+# Определение функции
+log_message() {
+    local level="$1"
+    local message="$2"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $message"
+}
+
+# Использование
+log_message "INFO" "Скрипт запущен"
+log_message "ERROR" "Что-то пошло не так"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 local:</strong> Переменные внутри функции лучше объявлять как <code>local</code>, чтобы они не конфликтовали с глобальными.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Обработка ошибок и trap</h3>
+                    <p><code>trap</code> позволяет выполнить код при определённых событиях (ошибка, выход из скрипта, сигнал).</p>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+set -euo pipefail
+
+TMPFILE="/tmp/myapp_$$"
+
+# Очистка при выходе из скрипта
+cleanup() {
+    echo "Очистка временных файлов..."
+    rm -f "$TMPFILE"
+}
+trap cleanup EXIT
+
+# Очистка при ошибке
+error_handler() {
+    echo "Ошибка на строке $1"
+    exit 1
+}
+trap 'error_handler $LINENO' ERR
+
+# Основная логика
+echo "Создаём временный файл" > "$TMPFILE"
+echo "Работаем..."
+# Если здесь ошибка — сработает trap и cleanup</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Отладка скриптов</h3>
+                    <div class="code-block">
+                        <code># Запуск с отладкой (показывает каждую команду перед выполнением)
+bash -x script.sh
+
+# Или внутри скрипта:
+set -x          # включить отладку
+echo "Эта команда будет показана"
+set +x          # выключить отладку
+
+# Отладка части скрипта:
+set -x
+# ... код для отладки ...
+set +x</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Используйте <code>shellcheck</code> — линтер для bash-скриптов. Он найдёт распространённые ошибки: <code>shellcheck script.sh</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY 2 -->
+            <section id="theory2">
+                <h2 class="section-title"> Условия и циклы</h2>
+                <div class="theory-block">
+                    <h3>if / else / elif</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+
+if [ "$1" == "admin" ]; then
+    echo "Доступ разрешён"
+elif [ "$1" == "guest" ]; then
+    echo "Ограниченный доступ"
+else
+    echo "Доступ запрещён"
+    exit 1
+fi
+
+# Проверка файлов
+if [ -f "/etc/passwd" ]; then
+    echo "Файл существует"
+fi
+
+if [ -d "/tmp" ]; then
+    echo "Директория существует"
+fi
+
+if [ -r "/etc/passwd" ]; then
+    echo "Файл читаем"
+fi</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Операторы проверки:</strong>
+                        <ul>
+                            <li><code>-f file</code> — файл существует</li>
+                            <li><code>-d dir</code> — директория существует</li>
+                            <li><code>-r file</code> — файл читаем</li>
+                            <li><code>-w file</code> — файл записываем</li>
+                            <li><code>-x file</code> — файл исполняем</li>
+                            <li><code>-z "$var"</code> — переменная пустая</li>
+                            <li><code>-n "$var"</code> — переменная не пустая</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Цикл for</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+
+# Простой цикл
+for i in {1..5}; do
+    echo "Шаг $i"
+done
+
+# Цикл по файлам
+for file in *.txt; do
+    echo "Обрабатываю $file"
+    cp "$file" "/backup/${file}.bak"
+done
+
+# Цикл по списку
+for user in alice bob charlie; do
+    echo "Создаю пользователя $user"
+    sudo useradd -m "$user"
+done</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Цикл while и until</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+
+# while — пока условие истинно
+counter=1
+while [ $counter -le 5 ]; do
+    echo "Счётчик: $counter"
+    ((counter++))
+done
+
+# until — пока условие ложно
+counter=1
+until [ $counter -gt 5 ]; do
+    echo "Счётчик: $counter"
+    ((counter++))
+done
+
+# Бесконечный цикл (для мониторинга)
+while true; do
+    echo "Проверка..."
+    sleep 10
+done</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 2 -->
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: циклы</h2>
+                <div class="practice-block">
+                    <h3>Скрипт бэкапа</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+set -euo pipefail
+
+# Создаём директорию для бэкапа
+DIR="/tmp/backup_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$DIR"
+
+echo "Начинаю бэкап в $DIR"
+
+# Копируем все .txt файлы из домашней папки
+for file in ~/*.txt; do
+    if [ -f "$file" ]; then
+        cp "$file" "$DIR/"
+        echo "Скопирован: $(basename $file)"
+    fi
+done
+
+echo "Бэкап завершён в $DIR"
+echo "Размер: $(du -sh $DIR | cut -f1)"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Скрипт мониторинга</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+
+# Проверяем сервис каждые 30 секунд
+while true; do
+    if systemctl is-active --quiet nginx; then
+        echo "✅ nginx работает"
+    else
+        echo "❌ nginx УПАЛ! Перезапускаю..."
+        sudo systemctl restart nginx
+    fi
+    sleep 30
+done</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GIT -->
+            <section id="git">
+                <h2 class="section-title">📦 Git для админа: храним скрипты и конфиги</h2>
+                <div class="theory-block">
+                    <h3>Зачем?</h3>
+                    <p>Git — не только для программистов. Администраторы хранят в репозитории скрипты, конфигурационные файлы, заметки. Это даёт историю изменений и бекап.</p>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Базовый рабочий процесс</h3>
+                    <div class="code-block">
+                        <code># Инициализация репозитория
+cd ~/scripts
+git init
+
+# Первый коммит
+git add .
+git commit -m "Первый коммит: мои скрипты"
+
+# После изменений
+git add backup.sh
+git commit -m "Добавил ротацию в backup.sh"
+
+# История
+git log --oneline
+git log --oneline --graph --all</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Ветки и слияния</h3>
+                    <div class="code-block">
+                        <code># Создать ветку
+git branch feature-nginx-config
+git checkout feature-nginx-config
+
+# Или одной командой:
+git checkout -b feature-nginx-config
+
+# Внести изменения, закоммитить
+git add nginx.conf
+git commit -m "Настройка nginx для production"
+
+# Вернуться в main и слить изменения
+git checkout main
+git merge feature-nginx-config
+
+# Удалить ветку
+git branch -d feature-nginx-config</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>.gitignore для админа</h3>
+                    <p>Исключайте чувствительные файлы из репозитория:</p>
+                    <div class="code-block">
+                        <code># .gitignore
+*.password
+*.key
+*.secret
+.env
+config.local.php
+backups/
+*.log</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        🚨 <strong>Критично:</strong> Никогда не коммитьте пароли, ключи SSH, токены API! Даже если потом удалите — они останутся в истории Git.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Удалённый репозиторий</h3>
+                    <div class="code-block">
+                        <code># Добавить remote
+git remote add origin https://github.com/user/my-scripts.git
+
+# Отправить
+git push -u origin main
+
+# Получить обновления
+git pull origin main
+
+# Клонировать на другой сервер
+git clone https://github.com/user/my-scripts.git</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Храните конфиги из <code>/etc</code> в отдельном репозитории с помощью <code>etckeeper</code> или вручную.
+                    </div>
+                </div>
+            </section>
+
+            <!-- CRON -->
+            <section id="cron">
+                <h2 class="section-title"> Планировщик cron</h2>
+                <div class="theory-block">
+                    <h3>Запуск скриптов по расписанию</h3>
+                    <div class="code-block">
+                        <code># Редактировать cron текущего пользователя
+crontab -e
+
+# Синтаксис: минута час день месяц день_недели команда
+# * = любое значение
+
+# Примеры:
+# Каждый день в 2:30 ночи
+30 2 * * * /home/user/backup.sh
+
+# Каждые 15 минут
+*/15 * * * * /home/user/check.sh
+
+# Каждый понедельник в 9:00
+0 9 * * 1 /home/user/weekly-report.sh
+
+# 1-е число каждого месяца в полночь
+0 0 1 * * /home/user/monthly-backup.sh</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Формат cron:</strong>
+                        <br><code>минута(0-59) час(0-23) день(1-31) месяц(1-12) день_недели(0-7)</code>
+                        <br><br>
+                        <strong>Специальные строки:</strong>
+                        <ul>
+                            <li><code>@reboot</code> — при загрузке системы</li>
+                            <li><code>@daily</code> — каждый день (0 0 * * *)</li>
+                            <li><code>@weekly</code> — каждую неделю (0 0 * * 0)</li>
+                            <li><code>@monthly</code> — каждый месяц (0 0 1 * *)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Важные моменты cron</h3>
+                    <div class="code-block">
+                        <code># Просмотреть задачи
+crontab -l
+
+# Удалить все задачи
+crontab -r
+
+# Логи cron
+sudo journalctl -u cron --since today
+
+# Перенаправить вывод в лог
+30 2 * * * /home/user/backup.sh >> /var/log/backup.log 2>&1</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ️ <strong>Окружение cron:</strong> Cron запускает скрипты с минимальным окружением. Нет <code>PATH</code>, нет переменных пользователя. Всегда используйте полные пути к командам: <code>/usr/bin/curl</code> вместо <code>curl</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Скрипт бэкапа с логированием</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+set -euo pipefail
+
+LOG="/var/log/backup.log"
+BACKUP_DIR="/backup/$(date +%Y%m%d)"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG"
+}
+
+log "Начинаю бэкап"
+
+# Создаём директорию
+mkdir -p "$BACKUP_DIR"
+
+# Бэкап базы данных
+log "Бэкап MySQL"
+mysqldump -u root --all-databases | gzip > "$BACKUP_DIR/db.sql.gz"
+
+# Бэкап файлов
+log "Бэкап /var/www"
+tar -czf "$BACKUP_DIR/www.tar.gz" /var/www
+
+# Удаляем старые бэкапы (старше 30 дней)
+log "Удаление старых бэкапов"
+find /backup -type f -mtime +30 -delete
+
+log "Бэкап завершён"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Скрипт мониторинга с алертами</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+
+# Проверяем место на диске
+USAGE=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+if [ "$USAGE" -gt 90 ]; then
+    echo "⚠️ Диск заполнен на $USAGE%!" | wall
+    curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
+         -d chat_id="$CHAT_ID" \
+         -d text="⚠️ Диск заполнен на ${USAGE}%" > /dev/null
+fi
+
+# Проверяем сервисы
+for SERVICE in nginx mysql ssh; do
+    if ! systemctl is-active --quiet "$SERVICE"; then
+        echo " $SERVICE упал!" | wall
+        sudo systemctl restart "$SERVICE"
+    fi
+done</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: Автоматизация деплоя</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+set -euo pipefail
+
+APP_DIR="/var/www/myapp"
+BACKUP_DIR="/backup/myapp_$(date +%Y%m%d_%H%M%S)"
+
+echo "Начинаю деплой..."
+
+# Бэкап текущей версии
+echo "Создаю бэкап"
+cp -r "$APP_DIR" "$BACKUP_DIR"
+
+# Получаем новую версию
+echo "Pull из Git"
+cd "$APP_DIR"
+git pull origin main
+
+# Устанавливаем зависимости
+echo "Установка зависимостей"
+npm install --production
+
+# Перезапускаем сервис
+echo "Перезапуск сервиса"
+sudo systemctl restart myapp
+
+echo "Деплой завершён"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Permission denied" при запуске скрипта</strong>
+                    <ul>
+                        <li>Скрипт не исполняемый: <code>chmod +x script.sh</code></li>
+                        <li>Или запускайте через bash: <code>bash script.sh</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "command not found" в скрипте, но работает в терминале</strong>
+                    <ul>
+                        <li>Проблема с PATH — cron имеет минимальное окружение</li>
+                        <li>Используйте полные пути: <code>/usr/bin/curl</code> вместо <code>curl</code></li>
+                        <li>Или добавьте PATH в начало скрипта: <code>PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Скрипт работает вручную, но не в cron</strong>
+                    <ul>
+                        <li>Проверьте PATH (см. выше)</li>
+                        <li>Проверьте права на файл: <code>ls -l script.sh</code></li>
+                        <li>Проверьте, что cron запущен: <code>systemctl status cron</code></li>
+                        <li>Смотрите логи cron: <code>sudo journalctl -u cron --since "1 hour ago"</code></li>
+                        <li>Добавьте вывод в лог: <code>* * * * * /script.sh >> /tmp/cron.log 2>&1</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "bash: syntax error near unexpected token"</strong>
+                    <ul>
+                        <li>Проверьте синтаксис: <code>bash -n script.sh</code> (проверка без запуска)</li>
+                        <li>Используйте <code>shellcheck script.sh</code> для поиска ошибок</li>
+                        <li>Проверьте кавычки и скобки</li>
+                        <li>Запустите с отладкой: <code>bash -x script.sh</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Переменная пустая внутри скрипта</strong>
+                    <ul>
+                        <li>Проверьте, что переменная экспортирована: <code>export MYVAR=value</code></li>
+                        <li>Используйте <code>set -u</code> для обнаружения неопределённых переменных</li>
+                        <li>Проверьте опечатки в имени переменной</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если скрипт не работает — добавьте <code>set -x</code> в начало. Это покажет каждую команду перед выполнением. Вы сразу увидите, где проблема.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Напиши скрипт, который выводит «Доброе утро», если время до 12, иначе «Добрый день» (используй <code>date +%H</code>)</li>
+                        <li class="task-item">Создай скрипт, который архивирует папку /var/log в /tmp/logs.tar.gz с датой в имени файла</li>
+                        <li class="task-item">Инициализируй Git-репозиторий в папке со скриптами, сделай первый коммит</li>
+                        <li class="task-item">Выведи переменную PATH и добавь в неё новую папку (временно через export)</li>
+                        <li class="task-item">Напиши скрипт с функцией <code>log_message()</code>, которая выводит timestamp и сообщение</li>
+                        <li class="task-item">Создай скрипт с <code>set -euo pipefail</code> и <code>trap</code> для очистки временных файлов</li>
+                        <li class="task-item">Напиши цикл for, который создаёт 5 файлов: file1.txt, file2.txt, ..., file5.txt</li>
+                        <li class="task-item">Добавь скрипт архивации в cron на выполнение каждую пятницу в 18:00</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Напишите скрипт, который принимает аргументы через getopts: <code>-d</code> (директория), <code>-o</code> (output файл), <code>-h</code> (help)</li>
+                        <li class="task-item">Создайте скрипт мониторинга, который проверяет: место на диске, загрузку CPU, статус 3 сервисов — и отправляет сводный алерт в Telegram, если что-то не в порядке</li>
+                        <li class="task-item">Напишите функцию <code>retry()</code>, которая выполняет команду до 3 раз с задержкой 5 секунд, если команда падает</li>
+                        <li class="task-item">Создайте Git-репозиторий с ветками <code>main</code> и <code>develop</code>, внесите изменения в develop, слейте в main через merge</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>#!/bin/bash</code>
+                            <p>Шебанг (указать интерпретатор)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>$1, $2, $@</code>
+                            <p>Аргументы скрипта</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>$?</code>
+                            <p>Код возврата последней команды</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>$$</code>
+                            <p>PID текущего процесса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>set -euo pipefail</code>
+                            <p>Строгий режим (ошибки, неопределённые, pipe)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>set -x</code>
+                            <p>Включить отладку</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>trap cleanup EXIT</code>
+                            <p>Выполнить при выходе</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>local var=value</code>
+                            <p>Локальная переменная в функции</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>if [ -f file ]</code>
+                            <p>Проверка существования файла</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>if [ -d dir ]</code>
+                            <p>Проверка директории</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>if [ -z "$var" ]</code>
+                            <p>Проверка пустой переменной</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>for i in {1..5}</code>
+                            <p>Цикл по числам</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>for file in *.txt</code>
+                            <p>Цикл по файлам</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>while [ condition ]</code>
+                            <p>Цикл пока условие истинно</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>export VAR=value</code>
+                            <p>Задать переменную окружения</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>crontab -e</code>
+                            <p>Редактировать cron</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>crontab -l</code>
+                            <p>Показать задачи cron</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>*/15 * * * *</code>
+                            <p>Каждые 15 минут</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>git init</code>
+                            <p>Создать репозиторий</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>git add .</code>
+                            <p>Добавить все файлы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>git commit -m "..."</code>
+                            <p>Сохранить изменения</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>git push</code>
+                            <p>Отправить на сервер</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>git checkout -b name</code>
+                            <p>Создать и перейти в ветку</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>shellcheck script.sh</code>
+                            <p>Проверить скрипт линтером</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module9.html" class="nav-btn">← Модуль 9: Сеть</a>
+                <a href="module11.html" class="nav-btn">Модуль 11: Мониторинг →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

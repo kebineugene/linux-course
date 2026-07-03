@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 13: Docker - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>🐳 Модуль 13</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#vs-vm" class="nav-item">Контейнер vs ВМ</a></li>
+                <li><a href="#install" class="nav-item">Установка Docker</a></li>
+                <li><a href="#images" class="nav-item">Работа с образами</a></li>
+                <li><a href="#containers" class="nav-item">Контейнеры</a></li>
+                <li><a href="#dockerfile" class="nav-item">Dockerfile</a></li>
+                <li><a href="#compose" class="nav-item">Docker Compose</a></li>
+                <li><a href="#volumes" class="nav-item">Volumes и сети</a></li>
+                <li><a href="#debugging" class="nav-item">Отладка</a></li>
+                <li><a href="#best-practices" class="nav-item">Best practices</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 13: Docker</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🚀 Контейнеризация</h2>
+                <div class="theory-block">
+                    <h3>Что такое Docker?</h3>
+                    <p>Docker — платформа для упаковки, доставки и запуска приложений в изолированных контейнерах. Контейнер содержит всё необходимое: код, библиотеки, зависимости — и работает одинаково где угодно.</p>
+                    <ul>
+                        <li><strong>📦 Изоляция</strong> — каждое приложение в своём контейнере, не мешает другим</li>
+                        <li><strong>⚡ Скорость</strong> — контейнеры запускаются за секунды, не минуты</li>
+                        <li><strong>🔄 Повторяемость</strong> — "работает на моей машине" больше не проблема</li>
+                        <li><strong> Масштабирование</strong> — легко запустить 10 копий приложения</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CONTAINER VS VM -->
+            <section id="vs-vm">
+                <h2 class="section-title">️ Контейнер vs Виртуальная машина</h2>
+                <div class="theory-block">
+                    <h3>В чём разница?</h3>
+                    <pre>
+Виртуальная машина (VM)          Контейнер (Docker)
+┌──────────────────────┐         ┌──────────────────────┐
+│      Приложение       │         │      Приложение       │
+──────────────────────┤         ├──────────────────────┤
+│   Библиотеки/Зависимости│       │   Библиотеки/Зависимости│
+├──────────────────────┤         ├──────────────────────┤
+│    Гостевая ОС         │         │                      │
+├──────────────────────┤         │                      │
+│    Гипервизор          │         ├──────────────────────┤
+├──────────────────────┤         │   Docker Engine       │
+│      Хостовая ОС       │         ├──────────────────────┤
+──────────────────────┤         │      Хостовая ОС       │
+└──────────────────────┘         └──────────────────────┘
+        Тяжёлая (ГБ)                     Лёгкий (МБ)
+        Запуск: минуты                   Запуск: секунды
+        Полная изоляция                  Общее ядро ОС</pre>
+                    <div class="info-block">
+                        <strong> Когда что использовать:</strong>
+                        <ul>
+                            <li><strong>Контейнеры</strong> — микросервисы, веб-приложения, CI/CD, быстрое развёртывание</li>
+                            <li><strong>ВМ</strong> — разные ОС (Windows + Linux), полная изоляция, legacy-приложения</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INSTALL -->
+            <section id="install">
+                <h2 class="section-title">📦 Установка Docker</h2>
+                <div class="theory-block">
+                    <h3>Linux (Ubuntu/Debian) или WSL (Windows)</h3>
+                    <p>Рекомендуется установить Docker Engine внутри вашего Linux-окружения (включая WSL). Это даст полный контроль и не требует Docker Desktop.</p>
+                    <div class="code-block">
+                        <code># Удалите старые версии (если есть)
+sudo apt remove docker docker-engine docker.io containerd runc
+
+# Установите необходимые пакеты
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg lsb-release
+
+# Добавьте официальный GPG-ключ Docker
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Добавьте репозиторий
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Установите Docker Engine
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Добавьте своего пользователя в группу docker
+sudo usermod -aG docker $USER</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Важно:</strong> Выйдите из системы и зайдите снова (или перезапустите WSL), чтобы изменения в группе вступили в силу. Иначе придётся использовать <code>sudo docker</code>.
+                    </div>
+                    <div class="code-block">
+                        <code># Проверьте установку
+docker run hello-world</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- IMAGES -->
+            <section id="images">
+                <h2 class="section-title">️ Работа с образами</h2>
+                <div class="theory-block">
+                    <h3>Что такое образ?</h3>
+                    <p>Образ (image) — это шаблон контейнера. Как класс в ООП: из одного образа можно создать много контейнеров. Образы хранятся в реестрах (Docker Hub, GitHub Container Registry).</p>
+                    <div class="code-block">
+                        <code># Скачать образ из Docker Hub
+docker pull nginx:latest
+docker pull nginx:1.21          # конкретная версия (рекомендуется!)
+docker pull postgres:15-alpine  # лёгкая версия на Alpine Linux
+
+# Посмотреть локальные образы
+docker images
+docker image ls
+
+# Удалить образ
+docker rmi nginx:latest
+
+# Найти образ на Docker Hub
+docker search nginx
+
+# Очистка неиспользуемых образов
+docker image prune              # удалить "висячие" образы
+docker system prune -a          # удалить всё неиспользуемое (осторожно!)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Тегирование:</strong> Тег — это версия образа. <code>nginx:latest</code> — последняя, <code>nginx:1.21</code> — конкретная. <strong>Всегда используйте конкретные версии в production!</strong> <code>latest</code> может сломать всё после обновления.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Свои теги и публикация</h3>
+                    <div class="code-block">
+                        <code># Добавить тег к образу
+docker tag myapp:1.0 myrepo/myapp:1.0
+docker tag myapp:1.0 myrepo/myapp:latest
+
+# Войти в реестр
+docker login
+
+# Отправить образ
+docker push myrepo/myapp:1.0
+docker push myrepo/myapp:latest</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTAINERS -->
+            <section id="containers">
+                <h2 class="section-title">📦 Контейнеры</h2>
+                <div class="theory-block">
+                    <h3>Запуск и управление</h3>
+                    <div class="code-block">
+                        <code># Запустить контейнер
+docker run hello-world
+docker run -d --name web -p 8080:80 nginx
+# -d = в фоне (detached)
+# --name = имя контейнера
+# -p 8080:80 = проброс порта (хост:контейнер)
+
+# Посмотреть запущенные контейнеры
+docker ps
+docker ps -a                    # все, включая остановленные
+
+# Остановить/запустить/перезапустить
+docker stop web
+docker start web
+docker restart web
+
+# Удалить контейнер
+docker rm web
+docker rm -f web                # принудительно (если запущен)
+
+# Посмотреть логи контейнера
+docker logs web
+docker logs -f web              # следить в реальном времени
+docker logs --tail 50 web       # последние 50 строк</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Вход в контейнер и мониторинг</h3>
+                    <div class="code-block">
+                        <code># Войти в запущенный контейнер
+docker exec -it web bash
+docker exec -it web sh          # если bash нет (Alpine)
+
+# Посмотреть ресурсы
+docker stats                    # мониторинг в реальном времени
+docker stats web                # только один контейнер
+
+# Детальная информация
+docker inspect web              # JSON со всей информацией
+docker inspect --format='{{.State.Status}}' web  # только статус</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong> Флаги exec:</strong> <code>-i</code> = интерактивный, <code>-t</code> = псевдо-TTY. Вместе <code>-it</code> дают полноценный терминал внутри контейнера.
+                    </div>
+                </div>
+            </section>
+
+            <!-- DOCKERFILE -->
+            <section id="dockerfile">
+                <h2 class="section-title">🛠️ Dockerfile</h2>
+                <div class="theory-block">
+                    <h3>Создание своего образа</h3>
+                    <p>Dockerfile — инструкция по сборке образа. Каждая команда создаёт слой (layer).</p>
+                    <div class="code-block">
+                        <code># Пример: Dockerfile для Node.js приложения
+FROM node:18-alpine             # базовый образ (конкретная версия!)
+WORKDIR /app                    # рабочая директория внутри контейнера
+COPY package*.json ./           # копируем файлы зависимостей
+RUN npm install                 # устанавливаем зависимости
+COPY . .                        # копируем весь код
+EXPOSE 3000                     # какой порт слушает приложение
+CMD ["node", "app.js"]          # команда запуска</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Команды Dockerfile:</strong>
+                        <ul>
+                            <li><code>FROM</code> — базовый образ (всегда первая команда)</li>
+                            <li><code>WORKDIR</code> — рабочая директория</li>
+                            <li><code>COPY</code> — копировать файлы с хоста</li>
+                            <li><code>RUN</code> — выполнить команду при сборке</li>
+                            <li><code>EXPOSE</code> — документация, какой порт открыт</li>
+                            <li><code>CMD</code> — команда запуска контейнера</li>
+                            <li><code>ENV</code> — переменные окружения</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Сборка и запуск</h3>
+                    <div class="code-block">
+                        <code># Собрать образ
+docker build -t myapp:1.0 .
+# -t = тег (имя:версия)
+# . = текущая директория (где Dockerfile)
+
+# Запустить
+docker run -d --name myapp -p 3000:3000 myapp:1.0
+
+# Проверить
+docker ps
+curl localhost:3000</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COMPOSE -->
+            <section id="compose">
+                <h2 class="section-title">🎼 Docker Compose</h2>
+                <div class="theory-block">
+                    <h3>Зачем Compose?</h3>
+                    <p>Когда приложение состоит из нескольких контейнеров (веб + БД + кэш), запускать их вручную неудобно. Compose описывает всю инфраструктуру в одном файле.</p>
+                    <div class="code-block">
+                        <code># docker-compose.yml
+version: '3.8'
+services:
+  web:
+    image: nginx:1.21
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - app
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=db
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_PASSWORD=secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Ключевые поля:</strong>
+                        <ul>
+                            <li><code>image</code> — готовый образ</li>
+                            <li><code>build</code> — собрать из Dockerfile</li>
+                            <li><code>ports</code> — проброс портов</li>
+                            <li><code>volumes</code> — постоянные данные</li>
+                            <li><code>environment</code> — переменные окружения</li>
+                            <li><code>depends_on</code> — порядок запуска</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Управление Compose</h3>
+                    <div class="code-block">
+                        <code># Запустить всё
+docker compose up
+docker compose up -d            # в фоне
+
+# Посмотреть статус
+docker compose ps
+
+# Посмотреть логи
+docker compose logs
+docker compose logs -f web      # только web, в реальном времени
+
+# Остановить всё
+docker compose stop
+docker compose down             # остановить и удалить контейнеры
+docker compose down -v          # + удалить volumes (осторожно!)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VOLUMES -->
+            <section id="volumes">
+                <h2 class="section-title">💾 Volumes и сети</h2>
+                <div class="theory-block">
+                    <h3>Хранение данных: volumes</h3>
+                    <p>Контейнеры эфемерны — данные внутри теряются при удалении. Volumes решают эту проблему.</p>
+                    <div class="code-block">
+                        <code># Создать volume
+docker volume create pgdata
+
+# Использовать в контейнере
+docker run -d --name db -v pgdata:/var/lib/postgresql/data postgres
+
+# Посмотреть volumes
+docker volume ls
+docker volume inspect pgdata
+
+# Удалить
+docker volume rm pgdata
+docker volume prune             # удалить неиспользуемые</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Bind mount vs Volume:</strong>
+                        <ul>
+                            <li><code>-v pgdata:/path</code> — volume (управляется Docker, надёжнее)</li>
+                            <li><code>-v ./local:/path</code> — bind mount (прямая папка хоста, удобно для разработки)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Связка контейнеров: network</h3>
+                    <div class="code-block">
+                        <code># Создать сеть
+docker network create mynet
+
+# Запустить контейнеры в сети
+docker run -d --name app --net mynet myapp
+docker run -d --name redis --net mynet redis
+
+# Контейнеры видят друг друга по именам!
+# Из app можно обратиться к redis:6379
+
+# Посмотреть сети
+docker network ls
+docker network inspect mynet</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 DNS в Docker:</strong> Контейнеры в одной сети резолвят друг друга по имени. Не нужны IP-адреса!
+                    </div>
+                </div>
+            </section>
+
+            <!-- DEBUGGING -->
+            <section id="debugging">
+                <h2 class="section-title"> Отладка контейнеров</h2>
+                <div class="theory-block">
+                    <h3>Типичный процесс отладки</h3>
+                    <div class="code-block">
+                        <code># 1. Контейнер не запускается — смотрим логи
+docker logs myapp
+docker logs --tail 100 myapp
+
+# 2. Контейнер запущен, но не работает — входим внутрь
+docker exec -it myapp bash
+# Внутри контейнера:
+ps aux
+netstat -tulpn
+cat /app/logs/app.log
+
+# 3. Смотрим ресурсы
+docker stats myapp
+
+# 4. Детальная информация
+docker inspect myapp | jq '.[0].State'
+docker inspect myapp | jq '.[0].Config.Env'</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BEST PRACTICES -->
+            <section id="best-practices">
+                <h2 class="section-title">⭐ Best practices</h2>
+                <div class="theory-block">
+                    <h3>1. Multi-stage builds (уменьшение размера)</h3>
+                    <p>Собираем в одном образе, запускаем в другом. Итоговый образ в 10 раз меньше!</p>
+                    <div class="code-block">
+                        <code># Stage 1: сборка
+FROM node:18 AS builder
+WORKDIR /app
+COPY . .
+RUN npm install && npm run build
+
+# Stage 2: запуск (только результат!)
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+CMD ["node", "dist/main.js"]</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>2. .dockerignore</h3>
+                    <p>Исключайте ненужные файлы из сборки (как .gitignore):</p>
+                    <div class="code-block">
+                        <code># .dockerignore
+node_modules
+.git
+.env
+*.log
+Dockerfile
+docker-compose.yml</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>3. Не запускать от root</h3>
+                    <div class="code-block">
+                        <code>FROM node:18-alpine
+RUN adduser -D appuser
+USER appuser
+WORKDIR /home/appuser/app
+# ... остальной Dockerfile</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Безопасность:</strong> Если контейнер взломают, злоумышленник получит root на хосте (если не использовать USER).
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>4. Конкретные версии образов</h3>
+                    <div class="code-block">
+                        <code># ❌ Плохо:
+FROM node:latest
+FROM nginx
+
+# ✅ Хорошо:
+FROM node:18.17-alpine
+FROM nginx:1.25.2</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>5. Один процесс на контейнер</h3>
+                    <p>Не пытайтесь запустить nginx + php-fpm + cron в одном контейнере. Разделите на отдельные контейнеры и свяжите через Compose.</p>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title"> Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Деплой Node.js + PostgreSQL</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём docker-compose.yml (см. раздел Compose)
+
+# 2. Запускаем
+docker compose up -d
+
+# 3. Проверяем
+docker compose ps
+docker compose logs -f app
+
+# 4. Обновление приложения
+docker compose build app
+docker compose up -d app
+
+# 5. Остановка
+docker compose down</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Быстрый запуск инструментов</h3>
+                    <div class="code-block">
+                        <code># Nginx за 10 секунд
+docker run -d -p 80:80 nginx
+
+# Redis для кэша
+docker run -d -p 6379:6379 redis:alpine
+
+# PostgreSQL для разработки
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=dev postgres:15-alpine
+
+# MongoDB
+docker run -d -p 27017:27017 mongo:7
+
+# Всё без установки на хост!</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Container exited immediately" (контейнер падает сразу)</strong>
+                    <ul>
+                        <li>Смотрите логи: <code>docker logs myapp</code></li>
+                        <li>Частые причины: ошибка в приложении, нет переменных окружения, неправильный CMD</li>
+                        <li>Запустите интерактивно для отладки: <code>docker run -it myapp sh</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Port already in use" (порт занят)</strong>
+                    <ul>
+                        <li>Проверьте, кто занял порт: <code>ss -tulpn | grep :8080</code></li>
+                        <li>Остановите конфликтующий сервис или используйте другой порт: <code>-p 8081:80</code></li>
+                        <li>Или удалите старый контейнер: <code>docker rm -f web</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong> "No space left on device"</strong>
+                    <ul>
+                        <li>Docker съел всё место образами и контейнерами</li>
+                        <li>Очистка: <code>docker system prune -a</code> (удалит всё неиспользуемое)</li>
+                        <li>Или мягче: <code>docker image prune</code> (только висячие образы)</li>
+                        <li>Проверьте размер: <code>docker system df</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Permission denied" внутри контейнера</strong>
+                    <ul>
+                        <li>Контейнер запущен от root, а файлы принадлежат другому пользователю</li>
+                        <li>Добавьте в Dockerfile: <code>USER appuser</code></li>
+                        <li>Или запустите с флагом: <code>docker run --user $(id -u):$(id -g) ...</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Контейнер не видит файлы" (volumes)</strong>
+                    <ul>
+                        <li>Проверьте пути: <code>docker inspect myapp | jq '.[0].Mounts'</code></li>
+                        <li>Bind mount: убедитесь, что папка на хосте существует</li>
+                        <li>Volume: данные сохраняются между перезапусками контейнера</li>
+                        <li>Права: <code>docker exec myapp ls -la /path</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Cannot connect to Docker daemon"</strong>
+                    <ul>
+                        <li>Docker не запущен: <code>sudo systemctl start docker</code></li>
+                        <li>Пользователь не в группе docker: <code>sudo usermod -aG docker $USER</code> и перелогиниться</li>
+                        <li>Или используйте <code>sudo docker</code> временно</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если что-то не работает — <code>docker logs</code> в 90% случаев показывает причину. Если контейнер упал — <code>docker logs myapp</code>. Если не запускается — <code>docker run -it myapp sh</code> и смотрите внутри.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Установи Docker согласно инструкции для своей ОС</li>
+                        <li class="task-item">Запусти контейнер <code>hello-world</code> и убедись, что всё работает</li>
+                        <li class="task-item">Запусти nginx с пробросом порта 8080: <code>docker run -d -p 8080:80 nginx</code>, проверь в браузере</li>
+                        <li class="task-item">Посмотри все запущенные контейнеры: <code>docker ps</code></li>
+                        <li class="task-item">Посмотри логи nginx: <code>docker logs &lt;container_id&gt;</code></li>
+                        <li class="task-item">Запусти PostgreSQL с volume, удали контейнер, запусти заново — проверь, что данные сохранились</li>
+                        <li class="task-item">Создай пользовательскую сеть и запусти в ней два контейнера, проверь связь между ними</li>
+                        <li class="task-item">Напиши простой Dockerfile для Python-приложения (hello world), собери и запусти</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3> Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создайте multi-stage Dockerfile для Node.js приложения: сборка в одном образе, запуск в другом (alpine)</li>
+                        <li class="task-item">Напишите docker-compose.yml с тремя сервисами: nginx (reverse proxy), Node.js app, PostgreSQL. Настройте сети и volumes</li>
+                        <li class="task-item">Настройте .dockerignore для проекта, соберите образ до и после — сравните размер через <code>docker images</code></li>
+                        <li class="task-item">Создайте Dockerfile, который не запускается от root (добавьте USER), проверьте через <code>docker exec -it myapp whoami</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>docker run -d image</code>
+                            <p>Запуск в фоне</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker ps -a</code>
+                            <p>Все контейнеры</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker stop/rm name</code>
+                            <p>Остановить/удалить</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker logs -f name</code>
+                            <p>Логи в реальном времени</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker exec -it name bash</code>
+                            <p>Войти в контейнер</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker stats</code>
+                            <p>Мониторинг ресурсов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker images</code>
+                            <p>Список образов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker pull image:tag</code>
+                            <p>Скачать образ</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker rmi image</code>
+                            <p>Удалить образ</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker build -t name .</code>
+                            <p>Собрать образ</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker tag old new</code>
+                            <p>Добавить тег</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker push repo/image</code>
+                            <p>Отправить в реестр</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker volume create name</code>
+                            <p>Создать volume</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker network create name</code>
+                            <p>Создать сеть</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker compose up -d</code>
+                            <p>Запустить Compose в фоне</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker compose down</code>
+                            <p>Остановить Compose</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker compose logs -f</code>
+                            <p>Логи Compose</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker system prune -a</code>
+                            <p>Очистить всё неиспользуемое</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker inspect name</code>
+                            <p>Детальная информация</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>docker system df</code>
+                            <p>Использование места Docker</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module12.html" class="nav-btn">← Модуль 12: Хранение</a>
+                <a href="../index.html" class="nav-btn">🏠 На главную</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

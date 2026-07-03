@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 7: Траблшутинг - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>🕵️ Модуль 7</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#methodology" class="nav-item">Методология</a></li>
+                <li><a href="#case1" class="nav-item">Кейс 1: Высокий CPU</a></li>
+                <li><a href="#case2" class="nav-item">Кейс 2: Кончилось место</a></li>
+                <li><a href="#case3" class="nav-item">Кейс 3: Сервис не стартует</a></li>
+                <li><a href="#case4" class="nav-item">Кейс 4: Нет сети</a></li>
+                <li><a href="#dmesg" class="nav-item">dmesg и /proc</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 7: Траблшутинг — детективные истории</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🔍 Мышление сисадмина</h2>
+                <div class="theory-block">
+                    <h3>Траблшутинг — это не магия</h3>
+                    <p>Траблшутинг — это методичный перебор гипотез. Каждый симптом ведёт к набору команд, которые сужают круг подозреваемых. Опытный админ отличается от новичка не знаниями команд, а <strong>алгоритмом мышления</strong>.</p>
+                    <ul>
+                        <li><strong> Системность</strong> — не прыгать между командами, а идти по шагам</li>
+                        <li><strong>📊 Наблюдательность</strong> — замечать детали в выводе команд</li>
+                        <li><strong>🧠 Логика</strong> — от общего к частному, от симптома к причине</li>
+                        <li><strong> Документирование</strong> — записывать, что делал и что получилось</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong> Аналогия:</strong> Траблшутинг — как медицинская диагностика. Пациент жалуется на головную боль (симптом). Врач не сразу назначает таблетки, а задаёт вопросы, делает анализы, исключает варианты. Так же и админ: пользователь говорит "сервер тормозит" — админ собирает метрики, ищет причину, устраняет.
+                </div>
+            </section>
+
+            <!-- METHODOLOGY -->
+            <section id="methodology">
+                <h2 class="section-title">🧭 Методология: 5 шагов диагностики</h2>
+                <div class="theory-block">
+                    <h3>Универсальный алгоритм</h3>
+                    <p>Этот алгоритм работает для 90% проблем. Запомни его — и ты никогда не будешь в тупике.</p>
+                    <ol>
+                        <li><strong> Воспроизвести проблему</strong> — убедиться, что она реальна, а не "мне показалось"</li>
+                        <li><strong>📋 Собрать симптомы</strong> — логи, метрики, вывод команд. Не гадать, а смотреть факты</li>
+                        <li><strong>💡 Выдвинуть гипотезы</strong> — что может быть причиной? Обычно 2-3 варианта</li>
+                        <li><strong> Проверить гипотезы</strong> — по одной, от самой вероятной к менее вероятной</li>
+                        <li><strong>✅ Исправить и документировать</strong> — устранить причину, записать решение</li>
+                    </ol>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Чек-лист "С чего начать, когда всё плохо"</h3>
+                    <p>Если ты зашёл на сервер и "всё тормозит" — выполни эти команды по порядку. Они дадут общую картину за 2 минуты:</p>
+                    <div class="code-block">
+                        <code># 1. Кто нагружает CPU?
+top -bn1 | head -20
+
+# 2. Сколько памяти свободно?
+free -h
+
+# 3. Хватает ли места на диске?
+df -h
+
+# 4. Хватает ли inodes?
+df -i
+
+# 5. Какие сервисы упали?
+systemctl --failed
+
+# 6. Что в логах ядра?
+dmesg -T | tail -30
+
+# 7. Есть ли сеть?
+ping -c 2 8.8.8.8</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Сохрани этот чек-лист как скрипт <code>/usr/local/bin/healthcheck.sh</code> и запускай при первом входе на незнакомый сервер.
+                    </div>
+                </div>
+            </section>
+
+            <!-- CASE 1 -->
+            <section id="case1">
+                <h2 class="section-title">📊 Кейс 1: Сервер внезапно начал тормозить</h2>
+                <div class="theory-block">
+                    <h3>Симптомы</h3>
+                    <p>Пользователи жалуются, что всё медленно. Вы заходите по SSH и видите, что команды выполняются с задержкой. <code>top</code> показывает load average 8.5 при 4 ядрах.</p>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Расследование</h3>
+                    <p><strong>Шаг 1: Общая картина</strong> — <code>top</code> или <code>htop</code>. Смотрим load average и какой процесс жрёт CPU.</p>
+                    <p><strong>Шаг 2: Детали</strong> — <code>ps aux --sort=-%cpu | head -5</code> — топ-5 процессов по CPU.</p>
+                    <p><strong>Шаг 3: Что это за процесс?</strong> — <code>ls -l /proc/&lt;PID&gt;/exe</code> — где лежит исполняемый файл.</p>
+                    <p><strong>Шаг 4: Действие</strong> — если процесс не системный, можно <code>kill -9 PID</code> (если это не сломает сервис).</p>
+                    <div class="code-block">
+                        <code>top
+ps aux --sort=-%cpu | head -5
+ls -l /proc/1234/exe
+kill -9 1234</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="info-block">
+                    <strong>🎯 Вывод:</strong> Нагрузка чаще всего создаётся взбесившимся скриптом или майнером. Быстрое решение — найти и убить. Долгосрочное — разобраться, как он попал на сервер.
+                </div>
+            </section>
+
+            <!-- CASE 2 -->
+            <section id="case2">
+                <h2 class="section-title">💾 Кейс 2: На диске закончилось место</h2>
+                <div class="theory-block">
+                    <h3>Симптомы</h3>
+                    <p>Сервисы падают с ошибкой «No space left on device», невозможно создавать файлы. <code>apt install</code> не работает.</p>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Расследование</h3>
+                    <p><strong>Шаг 1: Где проблема?</strong> — <code>df -h</code> — смотрим заполненность разделов.</p>
+                    <p><strong>Шаг 2: Кто съел место?</strong> — <code>du -sh /* 2>/dev/null | sort -rh | head -10</code> — ищем большие папки в корне.</p>
+                    <p><strong>Шаг 3: Внутри папки-подозреваемой</strong> — <code>du -sh /var/* | sort -rh | head</code> — сужаем круг.</p>
+                    <p><strong>Шаг 4: Конкретные файлы</strong> — <code>find /var -type f -size +100M</code> — ищем файлы &gt;100 МБ.</p>
+                    <p><strong>Шаг 5: Освобождаем</strong> — удаляем логи, кэш, старые ядра (через <code>apt autoremove</code>).</p>
+                    <div class="code-block">
+                        <code>df -h
+du -sh /var/* | sort -rh | head
+find /var -type f -size +100M
+sudo apt autoremove
+sudo journalctl --vacuum-size=100M</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="warning-block">
+                    ️ <strong>Важно:</strong> Не удаляй файлы через <code>rm</code>, пока не поймёшь, что это! Особенно опасно удалять файлы из <code>/var/lib/mysql</code> или <code>/etc</code>.
+                </div>
+
+                <div class="info-block">
+                    <strong>🎯 Вывод:</strong> Чаще всего место заканчивается из-за логов, которые забыли ротировать, или из-за кэша пакетного менеджера. Решение — настроить logrotate и регулярно чистить кэш.
+                </div>
+            </section>
+
+            <!-- CASE 3 -->
+            <section id="case3">
+                <h2 class="section-title"> Кейс 3: Сервис не запускается</h2>
+                <div class="theory-block">
+                    <h3>Симптомы</h3>
+                    <p><code>systemctl start nginx</code> молча падает или выдаёт ошибку. Сайт не открывается. <code>systemctl status nginx</code> показывает "failed".</p>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Расследование</h3>
+                    <p><strong>Шаг 1: Статус сервиса</strong> — <code>systemctl status nginx</code> — читаем последние сообщения.</p>
+                    <p><strong>Шаг 2: Логи сервиса</strong> — <code>journalctl -u nginx --since "5 min ago"</code> — смотрим логи за последние 5 минут.</p>
+                    <p><strong>Шаг 3: Проверка конфига</strong> — <code>nginx -t</code> (или аналог для другого сервиса) — валидация конфигурации.</p>
+                    <p><strong>Шаг 4: Порты</strong> — <code>ss -tulpn | grep :80</code> — не занят ли порт другим процессом?</p>
+                    <p><strong>Шаг 5: Исправляем</strong> — правим конфиг через nano, перезапускаем.</p>
+                    <div class="code-block">
+                        <code>systemctl status nginx
+journalctl -u nginx --since "5 min ago"
+nginx -t
+ss -tulpn | grep :80
+sudo nano /etc/nginx/nginx.conf
+sudo systemctl restart nginx</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="info-block">
+                    <strong>🎯 Вывод:</strong> 90% проблем — опечатка в конфиге или занятый порт. Логи всегда указывают на причину. Никогда не гадай — читай <code>journalctl</code>.
+                </div>
+            </section>
+
+            <!-- CASE 4 -->
+            <section id="case4">
+                <h2 class="section-title">🌐 Кейс 4: Нет сети / DNS не работает</h2>
+                <div class="theory-block">
+                    <h3>Симптомы</h3>
+                    <p>Сервер не отвечает на пинг, или пинг работает, но <code>curl ya.ru</code> выдаёт "Could not resolve host". Сайт недоступен из интернета.</p>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Расследование</h3>
+                    <p><strong>Шаг 1: Есть ли интернет?</strong> — <code>ping -c 4 8.8.8.8</code> (пинг по IP, без DNS).</p>
+                    <p><strong>Шаг 2: Работает ли DNS?</strong> — <code>ping -c 4 ya.ru</code> или <code>dig google.com +short</code>.</p>
+                    <p><strong>Шаг 3: Какой DNS настроен?</strong> — <code>cat /etc/resolv.conf</code>.</p>
+                    <p><strong>Шаг 4: Какой IP у сервера?</strong> — <code>ip a</code> и <code>ip r</code> (маршруты).</p>
+                    <p><strong>Шаг 5: Не блокирует ли фаервол?</strong> — <code>sudo ufw status</code> или <code>sudo iptables -L</code>.</p>
+                    <div class="code-block">
+                        <code>ping -c 4 8.8.8.8
+ping -c 4 ya.ru
+cat /etc/resolv.conf
+ip a
+ip r
+sudo ufw status</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="warning-block">
+                    ⚠️ <strong>Частая ошибка:</strong> Если <code>ping 8.8.8.8</code> работает, а <code>ping ya.ru</code> нет — проблема в DNS, не в сети. Проверь <code>/etc/resolv.conf</code> и попробуй <code>dig @8.8.8.8 ya.ru</code>.
+                </div>
+
+                <div class="info-block">
+                    <strong> Вывод:</strong> Сетевые проблемы делятся на три категории: нет маршрута (ip r), нет DNS (resolv.conf), блокирует фаервол (ufw/iptables). Определи категорию — и решение найдётся быстро.
+                </div>
+            </section>
+
+            <!-- DMESG -->
+            <section id="dmesg">
+                <h2 class="section-title"> dmesg и /proc: глубокая диагностика</h2>
+                <div class="theory-block">
+                    <h3>dmesg — сообщения ядра</h3>
+                    <p>Ядро Linux пишет важные события в кольцевой буфер. Там видны ошибки оборудования, OOM killer, проблемы с дисками.</p>
+                    <div class="code-block">
+                        <code>dmesg -T | tail -50              # последние 50 записей с читаемыми датами
+dmesg -T | grep -i error       # только ошибки
+dmesg -T | grep -i "oom"       # OOM killer (убийца при нехватке памяти)
+dmesg -T | grep -i "ext4"      # ошибки файловой системы
+journalctl -k                  # альтернатива через journalctl</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>OOM Killer:</strong> Если в dmesg есть <code>Out of memory: Killed process</code> — системе не хватает RAM, и ядро убивает процессы. Нужно добавить RAM или оптимизировать приложения.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>/proc — окно в ядро</h3>
+                    <p><code>/proc</code> — виртуальная файловая система. Каждый файл показывает состояние системы в реальном времени.</p>
+                    <div class="code-block">
+                        <code>cat /proc/cpuinfo              # информация о CPU (модель, ядра)
+cat /proc/meminfo              # детальная информация о памяти
+cat /proc/loadavg              # load average (как uptime, но только числа)
+cat /proc/uptime               # сколько секунд система работает
+cat /proc/net/dev              # сетевые интерфейсы и трафик
+cat /proc/PID/status           # статус конкретного процесса
+ls -l /proc/PID/fd             # открытые файловые дескрипторы процесса</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Зачем?</strong> Если процесс ведёт себя странно — <code>/proc/PID/fd</code> покажет, какие файлы он держит открытыми. Если процесс съел всю память — <code>/proc/PID/status</code> покажет сколько.
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: "Утром зашёл на сервер — всё висит"</h3>
+                    <div class="code-block">
+                        <code># 1. Быстрый healthcheck
+top -bn1 | head -20
+free -h
+df -h
+systemctl --failed
+
+# 2. Нашли: nginx упал, load average 12
+# 3. Смотрим почему nginx упал
+journalctl -u nginx --since "1 hour ago"
+
+# 4. Нашли: "bind() to 0.0.0.0:80 failed (98: Address already in use)"
+# 5. Кто занял порт 80?
+ss -tulpn | grep :80
+
+# 6. Нашли: apache2 слушает порт 80
+# 7. Решение: остановить apache2, запустить nginx
+sudo systemctl stop apache2
+sudo systemctl start nginx</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: "Сайт медленно грузится"</h3>
+                    <div class="code-block">
+                        <code># 1. Проверяем сеть
+ping -c 4 ya.ru
+curl -o /dev/null -s -w "%{time_total}\n" https://ya.ru
+
+# 2. Проверяем нагрузку
+top -bn1 | head -20
+iostat -x 1 5
+
+# 3. Проверяем диски
+df -h
+df -i
+
+# 4. Проверяем MySQL (если есть)
+mysqladmin -u root -p status
+
+# 5. Смотрим slow query log
+sudo tail -50 /var/log/mysql/mysql-slow.log</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Частые проблемы</h2>
+                <div class="warning-block">
+                    <strong>❓ "Команды выполняются медленно"</strong>
+                    <ul>
+                        <li>Проверьте load average: <code>uptime</code></li>
+                        <li>Проверьте I/O: <code>iostat -x 1</code> — если %util = 100%, диск перегружен</li>
+                        <li>Проверьте память: <code>free -h</code> — если swap используется, не хватает RAM</li>
+                        <li>Найдите виновника: <code>ps aux --sort=-%cpu | head</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "No space left on device", но df показывает место</strong>
+                    <ul>
+                        <li>Проверьте inodes: <code>df -i</code></li>
+                        <li>Если inodes = 100% — слишком много мелких файлов</li>
+                        <li>Найдите: <code>find / -xdev -printf '%h\n' | sort | uniq -c | sort -rn | head</code></li>
+                        <li>Удалите ненужные файлы (сессии, временные файлы, кэш)</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Сервис падает сразу после запуска"</strong>
+                    <ul>
+                        <li>Смотрите логи: <code>journalctl -u &lt;сервис&gt; -n 50</code></li>
+                        <li>Проверьте конфиг: <code>nginx -t</code> или аналог</li>
+                        <li>Проверьте права на файлы: <code>ls -l /path/to/files</code></li>
+                        <li>Проверьте, не занят ли порт: <code>ss -tulpn | grep :PORT</code></li>
+                        <li>Попробуйте запустить вручную: <code>sudo -u www-data /usr/bin/nginx</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Нет сети после настройки"</strong>
+                    <ul>
+                        <li>Проверьте интерфейс: <code>ip a</code> — есть ли IP?</li>
+                        <li>Проверьте маршруты: <code>ip r</code> — есть ли default?</li>
+                        <li>Проверьте DNS: <code>cat /etc/resolv.conf</code></li>
+                        <li>Проверьте фаервол: <code>sudo ufw status</code></li>
+                        <li>Попробуйте пинг по IP: <code>ping 8.8.8.8</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Логи не пишутся"</strong>
+                    <ul>
+                        <li>Проверьте место на диске: <code>df -h</code></li>
+                        <li>Проверьте inodes: <code>df -i</code></li>
+                        <li>Проверьте права на файл лога: <code>ls -l /var/log/...</code></li>
+                        <li>Проверьте, запущен ли сервис логирования: <code>systemctl status rsyslog</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если не знаешь, с чего начать — выполни чек-лист из раздела "Методология". Он покрывает 90% случаев.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Запусти <code>stress -c 1</code> (если установлен) и найди его через <code>top</code>, потом убей через <code>kill</code></li>
+                        <li class="task-item">Создай большой файл <code>dd if=/dev/zero of=bigfile bs=1M count=500</code> в /tmp, найди его через <code>du</code> и удали</li>
+                        <li class="task-item">Останови ssh, измени порт в конфиге на занятый (например, 80, если nginx слушает), попробуй стартовать и проанализируй ошибку</li>
+                        <li class="task-item">Выполни чек-лист "С чего начать" на своём сервере и запиши результаты</li>
+                        <li class="task-item">Найди все файлы больше 100МБ в /var: <code>find /var -type f -size +100M</code></li>
+                        <li class="task-item">Посмотри сообщения ядра за последний час: <code>dmesg -T | tail -30</code></li>
+                        <li class="task-item">Проверь inodes: <code>df -i</code> — сколько свободно?</li>
+                        <li class="task-item">Найди процесс, который держит открытым файл /var/log/syslog: <code>lsof /var/log/syslog</code></li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создайте скрипт <code>/usr/local/bin/healthcheck.sh</code>, который выполняет чек-лист из раздела "Методология" и выводит результаты в удобном виде</li>
+                        <li class="task-item">Найдите процесс, который использует больше всего открытых файлов: проверьте <code>/proc/PID/fd</code> для топ-5 процессов по памяти</li>
+                        <li class="task-item">Сымитируйте нехватку памяти: запустите <code>stress --vm 2 --vm-bytes 512M</code> и смотрите, как OOM killer убивает процессы через <code>dmesg -T</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка детектива</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>top -bn1 | head -20</code>
+                            <p>Снимок нагрузки (без интерактива)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ps aux --sort=-%cpu</code>
+                            <p>Топ процессов по CPU</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ps aux --sort=-%mem</code>
+                            <p>Топ процессов по памяти</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>free -h</code>
+                            <p>Использование памяти</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>df -h</code>
+                            <p>Место на дисках</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>df -i</code>
+                            <p>Использование inodes</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>du -sh /* | sort -rh | head</code>
+                            <p>Размер папок в корне</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>find /var -type f -size +100M</code>
+                            <p>Файлы больше 100МБ</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl --failed</code>
+                            <p>Упавшие сервисы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u name -n 50</code>
+                            <p>Последние 50 строк лога сервиса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ss -tulpn</code>
+                            <p>Кто слушает порты</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dmesg -T | tail -50</code>
+                            <p>Сообщения ядра</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dmesg | grep -i oom</code>
+                            <p>OOM killer (нехватка памяти)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /proc/loadavg</code>
+                            <p>Load average (числа)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /proc/meminfo</code>
+                            <p>Детальная информация о памяти</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ls -l /proc/PID/exe</code>
+                            <p>Путь к исполняемому файлу процесса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>lsof /path/to/file</code>
+                            <p>Кто держит файл открытым</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ping -c 4 8.8.8.8</code>
+                            <p>Проверка сети (без DNS)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dig domain +short</code>
+                            <p>Проверка DNS</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo ufw status</code>
+                            <p>Статус фаервола</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module6.html" class="nav-btn">← Модуль 6: Безопасность</a>
+                <a href="module8.html" class="nav-btn">Модуль 8: Логи →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

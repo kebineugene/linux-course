@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 3: Процессы - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>⚙️ Модуль 3</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: Процессы</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: ps, top, htop</a></li>
+                <li><a href="#theory2" class="nav-item">Теория: Управление</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: kill, bg/fg</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 3: Процессы</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <section id="intro">
+                <h2 class="section-title">🏃 Всё есть процесс</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу процессы?</h3>
+                    <p>Каждая запущенная программа — это процесс. Умение видеть и контролировать процессы — ключ к администрированию:</p>
+                    <ul>
+                        <li><strong> Диагностика</strong> — почему сервер тормозит? Кто ест CPU/память?</li>
+                        <li><strong>🛡️ Безопасность</strong> — какие процессы запущены? Нет ли чего подозрительного?</li>
+                        <li><strong>⚡ Управление</strong> — как остановить зависший сервис? Как запустить в фоне?</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Аналогия:</strong> Процессы — как сотрудники в офисе. Админ — менеджер, который видит, кто чем занят, кто бездельничает, и может уволить (kill) нерадивого работника.
+                </div>
+            </section>
+
+            <section id="theory1">
+                <h2 class="section-title">📖 Теория: Процессы</h2>
+                <div class="theory-block">
+                    <h3>Что такое PID?</h3>
+                    <p>Каждый процесс имеет уникальный номер — <strong>PID (Process ID)</strong>. Также есть <strong>PPID</strong> — PID родительского процесса.</p>
+                    <div class="code-block">
+                        <code>PID    PPID   USER     COMMAND
+1234   1      root     /usr/sbin/nginx
+1235   1234   www-data nginx: worker process</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Важно:</strong> PID 1 — это <code>systemd</code> (или <code>init</code>), прародитель всех процессов. Если он умрёт — система упадёт.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Список процессов: ps</h3>
+                    <div class="code-block">
+                        <code>ps aux                 # ВСЕ процессы (a=все пользователи, u=подробно, x=без терминала)
+ps aux | grep nginx     # найти nginx
+ps -ef                  # альтернативный формат
+pstree -p               # дерево процессов с PID</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>📊 Колонки ps aux:</strong>
+                        <ul>
+                            <li><code>USER</code> — владелец процесса</li>
+                            <li><code>%CPU</code> — загрузка процессора</li>
+                            <li><code>%MEM</code> — использование памяти</li>
+                            <li><code>VSZ</code> — виртуальный размер (KB)</li>
+                            <li><code>RSS</code> — реальная память (KB)</li>
+                            <li><code>STAT</code> — состояние (R=running, S=sleeping, Z=zombie)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Интерактивный монитор: top и htop</h3>
+                    <div class="code-block">
+                        <code>top                     # стандартный монитор
+# Горячие клавиши top:
+# P — сортировка по CPU
+# M — сортировка по памяти
+# k — убить процесс (ввести PID)
+# q — выйти
+
+htop                    # улучшенная версия (нужно установить: sudo apt install htop)
+# В htop можно кликать мышкой и использовать F1-F10</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> <code>htop</code> удобнее <code>top</code> — цветной, с мышкой, показывает дерево процессов. Установите его сразу: <code>sudo apt install htop</code>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: ps, top, htop</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>ps aux | head -10              # первые 10 процессов
+ps aux | grep bash             # найти все bash-процессы
+ps aux --sort=-%cpu | head -5  # топ-5 по CPU
+ps aux --sort=-%mem | head -5  # топ-5 по памяти
+top -n 1 -b                    # один снимок в текстовом режиме (для скриптов)
+pstree | less                  # дерево процессов</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Установка и запуск htop</h3>
+                    <div class="code-block">
+                        <code>sudo apt install -y htop
+htop
+# В htop: F1 — помощь, F9 — kill, F10 — выйти</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="theory2">
+                <h2 class="section-title">📖 Теория: Управление процессами</h2>
+                <div class="theory-block">
+                    <h3>Сигналы: kill</h3>
+                    <p>Команда <code>kill</code> отправляет сигналы процессам. Основные сигналы:</p>
+                    <div class="code-block">
+                        <code>kill PID            # SIGTERM (15) — мягкое завершение (процесс может сохраниться)
+kill -9 PID         # SIGKILL (9) — жёсткое убийство (немедленно)
+kill -15 PID        # то же, что kill PID
+kill -l             # список всех сигналов</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Всегда сначала пробуйте</strong> <code>kill PID</code> (SIGTERM). Используйте <code>kill -9</code> только если процесс не реагирует — он не даёт процессу сохраниться.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Фоновые процессы: bg/fg/jobs</h3>
+                    <div class="code-block">
+                        <code>sleep 100 &              # запустить в фоне (& в конце)
+jobs                     # показать фоновые задачи
+fg %1                    # вернуть задачу №1 на передний план
+bg %1                    # продолжить выполнение в фоне
+Ctrl+Z                   # приостановить текущий процесс
+kill %1                  # убить задачу №1</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Мнемоника:</strong> <code>fg</code> = foreground (на передний план), <code>bg</code> = background (в фон), <code>&</code> = сразу в фон.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Zombie-процессы</h3>
+                    <p>Если процесс завершился, но родитель не прочитал его статус — он становится <strong>zombie</strong> (статус <code>Z</code> в <code>ps</code>).</p>
+                    <div class="code-block">
+                        <code>ps aux | grep Z          # найти zombie-процессы</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Важно:</strong> Zombie-процессы не потребляют ресурсы, но засоряют таблицу процессов. Их нельзя убить — нужно перезапустить родительский процесс или дождаться его завершения.
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: kill, bg/fg</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>sleep 300 &              # запустить в фоне
+jobs                     # посмотреть номер задачи
+fg %1                    # вернуть, потом Ctrl+C
+ping ya.ru > /dev/null & # запустить пинг в фоне
+kill %1                  # убить задачу №1</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Работа с PID</h3>
+                    <div class="code-block">
+                        <code>sleep 500 &              # запустить в фоне
+echo $!                  # PID последнего фонового процесса
+kill $!                  # убить по PID
+ps aux | grep sleep      # найти PID процесса sleep
+kill 1234                # убить по конкретному PID</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Сервер тормозит — кто ест CPU?</h3>
+                    <div class="code-block">
+                        <code>top                          # открыть мониторинг
+# Нажать P — сортировка по CPU
+# Найти процесс с высоким %CPU
+# Запомнить PID
+# В другом терминале:
+ps aux | grep &lt;PID&gt;          # узнать, что за процесс
+kill &lt;PID&gt;                   # мягко завершить
+kill -9 &lt;PID&gt;                # если не реагирует</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Кто ест память?</h3>
+                    <div class="code-block">
+                        <code>ps aux --sort=-%mem | head -10   # топ-10 по памяти
+# Или в htop: нажать M — сортировка по памяти
+# Найти процесс, понять, нужен ли он
+# Если нет — kill</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: Подозрительный процесс</h3>
+                    <div class="code-block">
+                        <code>ps aux | grep &lt;имя&gt;              # найти процесс
+ls -l /proc/&lt;PID&gt;/exe         # показать путь к исполняемому файлу
+cat /proc/&lt;PID&gt;/cmdline       # полная командная строка
+# Если подозрительно — kill и проверить систему</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Внимание:</strong> Если вы нашли неизвестный процесс, который потребляет много ресурсов — возможно, это майнер или бэкдор. Проверьте путь к файлу через <code>/proc/&lt;PID&gt;/exe</code>.
+                    </div>
+                </div>
+            </section>
+
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Operation not permitted" при kill?</strong>
+                    <ul>
+                        <li>Вы не владелец процесса. Используйте <code>sudo kill PID</code></li>
+                        <li>Процесс принадлежит root — нужен sudo</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Процесс не убивается даже через kill -9?</strong>
+                    <ul>
+                        <li>Процесс в состоянии <code>D</code> (uninterruptible sleep) — ждёт I/O</li>
+                        <li>Поможет только перезагрузка или завершение родительского процесса</li>
+                        <li>Проверьте: <code>ps aux | grep &lt;PID&gt;</code> — посмотрите STAT</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "No such process" при kill?</strong>
+                    <ul>
+                        <li>Процесс уже завершился</li>
+                        <li>Неправильный PID — проверьте через <code>ps aux | grep &lt;имя&gt;</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Zombie-процессы в ps?</strong>
+                    <ul>
+                        <li>Zombie нельзя убить — они уже мертвы</li>
+                        <li>Нужно перезапустить родительский процесс</li>
+                        <li>Или дождаться, пока родитель прочитает статус</li>
+                        <li>Найти родителя: <code>ps -o ppid= -p &lt;ZOMBIE_PID&gt;</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ htop не установлен?</strong>
+                    <ul>
+                        <li>Установите: <code>sudo apt install htop</code></li>
+                        <li>Или используйте <code>top</code> — он есть всегда</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если процесс "висит" и не реагирует на <code>kill</code>, проверьте <code>dmesg | tail -20</code> — возможно, проблема на уровне ядра (I/O ошибки, нехватка памяти).
+                </div>
+            </section>
+
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Найди процесс, занимающий больше всего памяти: <code>ps aux --sort=-%mem | head -5</code></li>
+                        <li class="task-item">Запусти <code>sleep 500</code> в фоне, найди его PID и уничтожь через <code>kill</code></li>
+                        <li class="task-item">Приостанови текстовый редактор nano (Ctrl+Z), затем верни его через <code>fg</code></li>
+                        <li class="task-item">Установи htop: <code>sudo apt install htop</code> и запусти</li>
+                        <li class="task-item">В htop найди процесс с высоким CPU, запомни PID, выйди и убей его через <code>kill</code></li>
+                        <li class="task-item">Запусти <code>ping ya.ru > /dev/null &</code>, найди PID через <code>ps</code>, убей через <code>kill PID</code></li>
+                        <li class="task-item">Посмотри дерево процессов: <code>pstree -p | less</code></li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Найдите все zombie-процессы в системе: <code>ps aux | awk '$8=="Z"'</code></li>
+                        <li class="task-item">Создайте скрипт, который показывает топ-5 процессов по CPU каждые 2 секунды (используйте <code>watch</code>)</li>
+                        <li class="task-item">Найдите процесс, который слушает порт 80: <code>ss -tlnp | grep :80</code> (потребуется в модуле про сети)</li>
+                        <li class="task-item">Запустите <code>yes > /dev/null &</code> (загрузка CPU), найдите PID и убейте через <code>kill -9</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>ps aux</code>
+                            <p>Все процессы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ps aux | grep name</code>
+                            <p>Найти процесс по имени</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ps aux --sort=-%cpu</code>
+                            <p>Сортировка по CPU</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ps aux --sort=-%mem</code>
+                            <p>Сортировка по памяти</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>top</code>
+                            <p>Реальный мониторинг</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>htop</code>
+                            <p>Улучшенный top</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>pstree -p</code>
+                            <p>Дерево процессов с PID</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>kill PID</code>
+                            <p>Мягко завершить (SIGTERM)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>kill -9 PID</code>
+                            <p>Убить принудительно (SIGKILL)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>kill -l</code>
+                            <p>Список всех сигналов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sleep 100 &</code>
+                            <p>Запустить в фоне</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>jobs</code>
+                            <p>Показать фоновые задачи</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>fg %1</code>
+                            <p>Вернуть на передний план</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>bg %1</code>
+                            <p>Продолжить в фоне</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>Ctrl+Z</code>
+                            <p>Приостановить процесс</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>$!</code>
+                            <p>PID последнего фонового процесса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ps aux | grep Z</code>
+                            <p>Найти zombie-процессы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ls -l /proc/PID/exe</code>
+                            <p>Путь к исполняемому файлу</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module2.html" class="nav-btn">← Модуль 2: Права</a>
+                <a href="module4.html" class="nav-btn">Модуль 4: Пакеты →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

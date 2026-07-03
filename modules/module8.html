@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 8: Логи - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>📜 Модуль 8</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">syslog и journald</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: просмотр</a></li>
+                <li><a href="#levels" class="nav-item">Уровни логирования</a></li>
+                <li><a href="#theory2" class="nav-item">Инструменты анализа</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: парсинг</a></li>
+                <li><a href="#json" class="nav-item">JSON-логи и jq</a></li>
+                <li><a href="#logrotate" class="nav-item">logrotate</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 8: Логи</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">📖 Логи — память системы</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу логи?</h3>
+                    <p>Всё, что происходит в системе, пишется в логи. Умение их читать и анализировать — <strong>50% работы админа</strong>. Без логов вы слепы: не знаете, кто заходил, что падало, где ошибка.</p>
+                    <ul>
+                        <li><strong>🔍 Диагностика</strong> — почему сервис упал? кто атакует сервер?</li>
+                        <li><strong>🛡️ Безопасность</strong> — кто пытался войти? какие команды выполнял?</li>
+                        <li><strong>📊 Аудит</strong> — что изменилось в системе? когда?</li>
+                        <li><strong>⚡ Производительность</strong> — какие запросы медленные? где узкое место?</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Аналогия:</strong> Логи — это чёрный ящик самолёта. Когда всё работает — их никто не читает. Когда что-то падает — это единственный способ понять, что произошло.
+                </div>
+            </section>
+
+            <!-- THEORY 1: SYSLOG И JOURNALD -->
+            <section id="theory1">
+                <h2 class="section-title">️ syslog и journald</h2>
+                <div class="theory-block">
+                    <h3>Традиционный syslog</h3>
+                    <p>Старая система логирования. Логи хранятся в текстовых файлах в <code>/var/log/</code>. Простая, понятная, работает везде.</p>
+                    <div class="code-block">
+                        <code>tail -f /var/log/syslog          # следить за системным логом в реальном времени
+less /var/log/auth.log             # логи аутентификации (входы, sudo)
+less /var/log/kern.log             # сообщения ядра
+less /var/log/dpkg.log             # установка/удаление пакетов
+less /var/log/nginx/access.log     # запросы к веб-серверу
+less /var/log/nginx/error.log      # ошибки веб-сервера</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Основные файлы логов:</strong>
+                        <ul>
+                            <li><code>/var/log/syslog</code> — общий системный лог (Ubuntu/Debian)</li>
+                            <li><code>/var/log/messages</code> — общий системный лог (CentOS/RHEL)</li>
+                            <li><code>/var/log/auth.log</code> — аутентификация, SSH, sudo</li>
+                            <li><code>/var/log/kern.log</code> — ядро, драйверы, hardware</li>
+                            <li><code>/var/log/dpkg.log</code> — пакетный менеджер</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>journalctl (systemd)</h3>
+                    <p>Современная система логирования. Логи хранятся в бинарном формате, но <code>journalctl</code> делает их удобными для чтения. Преимущества: централизованный сбор, быстрый поиск, структурированные данные.</p>
+                    <div class="code-block">
+                        <code>sudo journalctl -u nginx             # логи сервиса nginx
+sudo journalctl -u nginx --since "10 min ago"  # за последние 10 минут
+sudo journalctl -u nginx --since today         # за сегодня
+sudo journalctl -u nginx --since "2024-01-15 14:30:00"  # с конкретного времени
+sudo journalctl -f                             # следить за всеми логами в реальном времени
+sudo journalctl -p err                         # только ошибки
+sudo journalctl -p warning                     # предупреждения и ошибки
+sudo journalctl -n 50                          # последние 50 строк
+sudo journalctl --no-pager                     # без постраничного вывода (для скриптов)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 journalctl vs syslog:</strong>
+                        <ul>
+                            <li><code>journalctl</code> — быстрее, удобнее поиск, есть метаданные (PID, UID, приоритет)</li>
+                            <li><code>syslog</code> — текстовые файлы, можно читать любыми инструментами (grep, awk)</li>
+                            <li>На современных системах работают обе — выбирайте удобную</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 1 -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: просмотр логов</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code># 1. Системный лог
+tail -20 /var/log/syslog
+
+# 2. Логи сервиса
+sudo journalctl -u ssh --since "1 hour ago"
+
+# 3. Живой просмотр (следить за логами)
+sudo journalctl -f
+
+# 4. Только ошибки
+sudo journalctl -p err --since today
+
+# 5. Логи аутентификации (кто заходил?)
+sudo tail -50 /var/log/auth.log</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LEVELS -->
+            <section id="levels">
+                <h2 class="section-title"> Уровни логирования</h2>
+                <div class="theory-block">
+                    <h3>Зачем нужны уровни?</h3>
+                    <p>Не все сообщения одинаково важны. Уровни помогают фильтровать шум и находить критичные проблемы.</p>
+
+                    <pre>
+Уровень          Приоритет  Когда использовать
+─────────────────────────────────────────────────
+DEBUG            7          Отладка, детали работы
+INFO             6          Обычные события (запуск, остановка)
+NOTICE           5          Нормальные, но важные события
+WARNING          4          Потенциальные проблемы
+ERROR            3          Ошибки (что-то не работает)
+CRITICAL         2          Критичные ошибки (сервис падает)
+ALERT            1          Требует немедленного действия
+EMERGENCY        0          Система не работает</pre>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Как менять уровень логирования?</h3>
+                    <p>В systemd-сервисах можно задать уровень через переменную окружения:</p>
+                    <div class="code-block">
+                        <code># В unit-файле /etc/systemd/system/myapp.service:
+[Service]
+Environment=LOG_LEVEL=debug
+
+# После изменения:
+sudo systemctl daemon-reload
+sudo systemctl restart myapp</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+
+                    <p>В nginx уровень задаётся в конфиге:</p>
+                    <div class="code-block">
+                        <code># В /etc/nginx/nginx.conf:
+error_log /var/log/nginx/error.log warn;  # только warning и выше
+# Варианты: debug, info, notice, warn, error, crit, alert, emerg</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> На production ставьте уровень <code>warn</code> или <code>error</code>. Уровень <code>debug</code> создаёт огромные логи и замедляет работу.
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY 2: ИНСТРУМЕНТЫ АНАЛИЗА -->
+            <section id="theory2">
+                <h2 class="section-title">🛠️ Инструменты для анализа логов</h2>
+                <div class="theory-block">
+                    <h3>awk — извлечение столбцов</h3>
+                    <p><code>awk</code> разбивает строку на поля (по пробелам по умолчанию) и позволяет работать с каждым полем отдельно.</p>
+                    <div class="code-block">
+                        <code>awk '{print $1}' access.log              # первое поле (обычно IP)
+awk '{print $1, $3}' access.log            # первое и третье поля
+awk '$3 > 1000 {print $1}' access.log      # если третье поле > 1000, вывести первое
+awk -F: '{print $1}' /etc/passwd           # разделитель — двоеточие</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>sed — замена в потоке</h3>
+                    <div class="code-block">
+                        <code>sed 's/error/ERROR/g' log.txt            # заменить "error" на "ERROR"
+sed -n '/error/p' log.txt                  # вывести только строки с "error"
+sed '/error/d' log.txt                     # удалить строки с "error"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>cut, sort, uniq — комбинаторика</h3>
+                    <div class="code-block">
+                        <code># Топ IP-адресов из access.log:
+cut -d' ' -f1 access.log | sort | uniq -c | sort -rn | head -10
+
+# Расшифровка:
+# cut -d' ' -f1      — вырезать первое поле (разделитель — пробел)
+# sort               — отсортировать (для uniq нужно)
+# uniq -c            — подсчитать повторы
+# sort -rn           — отсортировать по числу (обратно)
+# head -10           — топ-10</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Мнемоника:</strong> <code>cut → sort → uniq → sort → head</code> — стандартный конвейер для подсчёта повторов.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>grep — поиск паттернов</h3>
+                    <div class="code-block">
+                        <code>grep "error" /var/log/syslog             # найти "error"
+grep -i "error" log.txt                  # без учёта регистра
+grep -v "error" log.txt                  # строки БЕЗ "error"
+grep -n "error" log.txt                  # с номерами строк
+grep -r "root" /etc/                     # во всех файлах рекурсивно
+grep -c "error" log.txt                  # подсчитать количество строк
+grep -E "error|warning" log.txt          # регулярное выражение (error ИЛИ warning)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 2 -->
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: парсинг логов</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code># 1. Топ-5 IP из access.log
+cut -d' ' -f1 /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -5
+
+# 2. Все ошибки за сегодня
+sudo journalctl -p err --since today
+
+# 3. Количество ошибок в syslog
+grep -c "error" /var/log/syslog
+
+# 4. Строки с "Failed password" (попытки взлома SSH)
+grep "Failed password" /var/log/auth.log | tail -20
+
+# 5. Уникальные IP, пытавшиеся войти по SSH
+grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort -u</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- JSON LOGS -->
+            <section id="json">
+                <h2 class="section-title">📦 JSON-логи и jq</h2>
+                <div class="theory-block">
+                    <h3>Зачем JSON вместо текста?</h3>
+                    <p>Современные приложения часто пишут логи в формате JSON. Это структурированные данные, которые легко парсить машиной.</p>
+                    <div class="code-block">
+                        <code># Текстовый лог (сложно парсить):
+2024-01-15 14:30:15 ERROR user=alex action=login status=failed
+
+# JSON-лог (легко парсить):
+{"timestamp":"2024-01-15T14:30:15","level":"ERROR","user":"alex","action":"login","status":"failed"}</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>jq — парсер JSON</h3>
+                    <div class="code-block">
+                        <code>sudo apt install -y jq
+
+# Красивый вывод JSON:
+cat log.json | jq .
+
+# Извлечь поле:
+cat log.json | jq '.user'
+
+# Извлечь несколько полей:
+cat log.json | jq '{user, action}'
+
+# Фильтрация:
+cat log.json | jq 'select(.level == "ERROR")'
+
+# Подсчёт:
+cat log.json | jq -s 'group_by(.user) | map({user: .[0].user, count: length})'</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Если логи в JSON — используйте <code>jq</code>, а не <code>awk</code>/<code>grep</code>. Это надёжнее и проще.
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOGROTATE -->
+            <section id="logrotate">
+                <h2 class="section-title">🔄 Ротация логов</h2>
+                <div class="theory-block">
+                    <h3>Зачем нужна ротация?</h3>
+                    <p>Логи растут бесконечно. Без ротации диск заполнится. <code>logrotate</code> автоматически сжимает и удаляет старые логи.</p>
+                    <div class="code-block">
+                        <code>cat /etc/logrotate.conf              # главный конфиг
+ls /etc/logrotate.d/                     # конфиги для отдельных сервисов</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Пример конфига logrotate</h3>
+                    <div class="code-block">
+                        <code># Файл: /etc/logrotate.d/myapp
+/var/log/myapp/*.log {
+    daily                    # ротировать каждый день
+    missingok                # не ошибаться, если файл отсутствует
+    rotate 7                 # хранить 7 старых файлов
+    compress                 # сжимать старые логи (gzip)
+    delaycompress            # сжимать только со второго раза
+    notifempty               # не ротировать пустые файлы
+    create 0640 www-data adm # права на новый файл
+    sharedscripts            # скрипты выполняются один раз
+    postrotate
+        systemctl reload nginx > /dev/null 2>&1 || true
+    endscript
+}</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Параметры:</strong>
+                        <ul>
+                            <li><code>daily/weekly/monthly</code> — частота ротации</li>
+                            <li><code>rotate N</code> — сколько старых файлов хранить</li>
+                            <li><code>compress</code> — сжимать через gzip</li>
+                            <li><code>size 100M</code> — ротировать, если файл больше 100МБ</li>
+                            <li><code>postrotate</code> — команда после ротации (например, перезапустить сервис)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Тестирование logrotate</h3>
+                    <div class="code-block">
+                        <code>sudo logrotate -d /etc/logrotate.conf              # сухой прогон (без изменений)
+sudo logrotate -f /etc/logrotate.d/myapp               # принудительная ротация</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: «Сайт упал» — диагностика через логи</h3>
+                    <div class="code-block">
+                        <code># Шаг 1: Проверить статус сервиса
+sudo systemctl status nginx
+
+# Шаг 2: Посмотреть логи сервиса за последние 10 минут
+sudo journalctl -u nginx --since "10 min ago"
+
+# Шаг 3: Посмотреть ошибки nginx
+sudo tail -50 /var/log/nginx/error.log
+
+# Шаг 4: Найти конкретную ошибку
+sudo grep "error" /var/log/nginx/error.log | tail -20
+
+# Шаг 5: Посмотреть access.log — какие запросы приходят?
+sudo tail -20 /var/log/nginx/access.log
+
+# Шаг 6: Найти 500-е ошибки
+sudo awk '$9 == 500' /var/log/nginx/access.log | tail -20</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: «Кто-то пытается взломать сервер»</h3>
+                    <div class="code-block">
+                        <code># 1. Посмотреть неудачные попытки входа по SSH
+sudo grep "Failed password" /var/log/auth.log | tail -30
+
+# 2. Найти топ IP, пытавшихся войти
+sudo grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -rn | head -10
+
+# 3. Посмотреть успешные входы
+sudo grep "Accepted" /var/log/auth.log | tail -20
+
+# 4. Проверить, кто сейчас залогинен
+who
+last -20</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Защита:</strong> Если видите много попыток входа — установите <code>fail2ban</code> (модуль 6).
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: «Диск заполнился» — найти виновника</h3>
+                    <div class="code-block">
+                        <code># 1. Проверить, какой раздел заполнен
+df -h
+
+# 2. Найти большие логи
+sudo find /var/log -type f -size +100M -exec ls -lh {} \;
+
+# 3. Посмотреть размер логов по папкам
+sudo du -sh /var/log/*
+
+# 4. Проверить, не забыли ли ротацию
+ls -lh /var/log/nginx/
+
+# 5. Очистить старые логи (осторожно!)
+sudo find /var/log -name "*.gz" -mtime +30 -delete</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "journalctl показывает мало строк"</strong>
+                    <ul>
+                        <li>По умолчанию journalctl хранит логи только с последней загрузки</li>
+                        <li>Включите постоянное хранение: <code>sudo mkdir -p /var/log/journal</code></li>
+                        <li>Перезапустите: <code>sudo systemctl restart systemd-journald</code></li>
+                        <li>Или настройте в <code>/etc/systemd/journald.conf</code>: <code>Storage=persistent</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Логи не пишутся"</strong>
+                    <ul>
+                        <li>Проверьте место на диске: <code>df -h</code></li>
+                        <li>Проверьте inodes: <code>df -i</code></li>
+                        <li>Проверьте права на файл лога: <code>ls -l /var/log/...</code></li>
+                        <li>Проверьте, запущен ли сервис логирования: <code>systemctl status rsyslog</code> или <code>systemctl status systemd-journald</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Как найти ошибку за конкретное время?"</strong>
+                    <ul>
+                        <li>Используйте <code>--since</code> и <code>--until</code>:
+                        <br><code>sudo journalctl -u nginx --since "2024-01-15 14:00:00" --until "2024-01-15 15:00:00"</code></li>
+                        <li>Или через grep с контекстом:
+                        <br><code>grep "14:30" /var/log/syslog | grep "error"</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Логи слишком большие, диск заполняется"</strong>
+                    <ul>
+                        <li>Настройте logrotate (см. раздел выше)</li>
+                        <li>Для journalctl: <code>sudo journalctl --vacuum-size=100M</code> — оставить только 100МБ</li>
+                        <li>Или в конфиге: <code>SystemMaxUse=100M</code> в <code>/etc/systemd/journald.conf</code></li>
+                        <li>Найдите большие логи: <code>sudo find /var/log -type f -size +100M</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "logrotate не работает"</strong>
+                    <ul>
+                        <li>Проверьте синтаксис: <code>sudo logrotate -d /etc/logrotate.conf</code> (сухой прогон)</li>
+                        <li>Проверьте, что cron запускает logrotate: <code>ls /etc/cron.daily/logrotate</code></li>
+                        <li>Запустите вручную: <code>sudo logrotate -f /etc/logrotate.d/myapp</code></li>
+                        <li>Проверьте права на конфиг: должен быть <code>root:root</code> с правами <code>644</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong> Универсальный совет:</strong> Если не можете найти ошибку в логах — увеличьте уровень логирования до <code>debug</code>, воспроизведите проблему, потом верните уровень обратно. В debug-режиме видно всё.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Найди ошибки в syslog за последние 15 минут: <code>sudo journalctl -p err --since "15 min ago"</code></li>
+                        <li class="task-item">Посмотри логи сервиса cron: <code>sudo journalctl -u cron --since today</code></li>
+                        <li class="task-item">Используя awk, выведи только IP из файла access.log: <code>awk '{print $1}' /var/log/nginx/access.log | head -10</code></li>
+                        <li class="task-item">Найди все попытки входа по SSH: <code>sudo grep "Accepted" /var/log/auth.log | tail -10</code></li>
+                        <li class="task-item">Посмотри размер логов в /var/log: <code>sudo du -sh /var/log/*</code></li>
+                        <li class="task-item">Найди топ-5 IP из access.log через конвейер cut|sort|uniq</li>
+                        <li class="task-item">Проверь конфиг logrotate: <code>sudo logrotate -d /etc/logrotate.conf</code></li>
+                        <li class="task-item">Настрой ротацию для /var/log/myapp.log (создай конфиг в /etc/logrotate.d/)</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Напишите скрипт, который парсит access.log и выводит топ-10 URL, которые возвращают 404 ошибку</li>
+                        <li class="task-item">Найдите все IP, которые пытались войти по SSH больше 10 раз, и сохраните список в файл</li>
+                        <li class="task-item">Настройте logrotate так, чтобы логи сжимались через gzip, хранились 30 дней, и после ротации перезапускался nginx</li>
+                        <li class="task-item">Создайте скрипт, который ищет в логах паттерн "ERROR" и отправляет уведомление в Telegram (используйте код из модуля 11)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>tail -f file</code>
+                            <p>Следить за логом в реальном времени</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>less /var/log/syslog</code>
+                            <p>Читать лог с навигацией</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u unit</code>
+                            <p>Логи сервиса systemd</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl --since "1h ago"</code>
+                            <p>Логи за последний час</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -p err</code>
+                            <p>Только ошибки</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -f</code>
+                            <p>Следить за всеми логами</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>awk '{print $1}'</code>
+                            <p>Первое поле строки</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sed 's/old/new/g'</code>
+                            <p>Замена текста</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cut -d' ' -f1</code>
+                            <p>Вырезать первое поле</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sort | uniq -c</code>
+                            <p>Подсчёт повторов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>grep "pattern" file</code>
+                            <p>Поиск паттерна</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>grep -c "pattern"</code>
+                            <p>Подсчитать совпадения</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>grep -r "text" /dir/</code>
+                            <p>Поиск во всех файлах</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>jq '.field'</code>
+                            <p>Извлечь поле из JSON</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>jq 'select(.x == "y")'</code>
+                            <p>Фильтрация JSON</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>logrotate -d conf</code>
+                            <p>Тест ротации (сухой прогон)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>logrotate -f conf</code>
+                            <p>Принудительная ротация</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl --vacuum-size=100M</code>
+                            <p>Очистить старые journal-логи</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>find /var/log -size +100M</code>
+                            <p>Найти большие логи</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>du -sh /var/log/*</code>
+                            <p>Размер логов по папкам</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module7.html" class="nav-btn">← Модуль 7: Траблшутинг</a>
+                <a href="module9.html" class="nav-btn">Модуль 9: Сеть →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

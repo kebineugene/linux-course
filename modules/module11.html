@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 11: Мониторинг - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>📈 Модуль 11</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Системные метрики</a></li>
+                <li><a href="#proc" class="nav-item">/proc и /sys</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: утилиты</a></li>
+                <li><a href="#scripts" class="nav-item">Скрипты мониторинга</a></li>
+                <li><a href="#alert" class="nav-item">Алерты в Telegram</a></li>
+                <li><a href="#prometheus" class="nav-item">Prometheus + Grafana</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 11: Мониторинг</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">👀 Держи руку на пульсе</h2>
+                <div class="theory-block">
+                    <h3>Зачем мониторинг?</h3>
+                    <p>Мониторинг — это система раннего предупреждения. Без неё вы узнаёте о проблеме, когда <strong>клиенты уже жалуются</strong>. С мониторингом — вы узнаёте <strong>до того</strong>, как проблема станет критичной.</p>
+                    <ul>
+                        <li><strong>📊 Метрики</strong> — числа, описывающие состояние системы (CPU, RAM, диск)</li>
+                        <li><strong>📈 Визуализация</strong> — графики, чтобы видеть тренды</li>
+                        <li><strong>🔔 Алерты</strong> — уведомления, когда метрики выходят за пределы</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Три уровня мониторинга:</strong>
+                    <ol>
+                        <li><strong>Ручной</strong> — вы заходите и смотрите <code>top</code>, <code>df</code>, <code>free</code></li>
+                        <li><strong>Скрипты + cron</strong> — автоматическая проверка каждые N минут + алерт в Telegram</li>
+                        <li><strong>Система мониторинга</strong> — Prometheus + Grafana, графики, история, алерты</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- SYSTEM METRICS -->
+            <section id="theory1">
+                <h2 class="section-title">📊 Системные метрики</h2>
+                <div class="theory-block">
+                    <h3>uptime и load average</h3>
+                    <div class="code-block">
+                        <code>uptime
+# 14:23:15 up 45 days, 3:12, 2 users, load average: 0.15, 0.22, 0.18</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Что значат 3 числа load average?</strong>
+                        <br>Средняя загрузка за <strong>1 минуту</strong>, <strong>5 минут</strong>, <strong>15 минут</strong>.
+                        <br><br>
+                        <strong>Правило:</strong> Сравнивайте с количеством ядер CPU. Если у вас 4 ядра:
+                        <ul>
+                            <li>Load &lt; 4 — всё хорошо</li>
+                            <li>Load = 4 — полная загрузка</li>
+                            <li>Load &gt; 4 — процессы ждут в очереди (система тормозит)</li>
+                        </ul>
+                        Узнать количество ядер: <code>nproc</code>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>free: оперативная память</h3>
+                    <div class="code-block">
+                        <code>free -h
+#              total    used    free    shared  buff/cache  available
+# Mem:         7.8G     2.1G    1.2G    156M     4.5G        5.3G
+# Swap:        2.0G     0B      2.0G</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Важная колонка — <code>available</code></strong>, а не <code>free</code>!
+                        <br>Linux активно использует свободную память под кэш (<code>buff/cache</code>), но может освободить её мгновенно. Поэтому <code>available</code> — реальное количество доступной памяти.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>df и du: диск</h3>
+                    <div class="code-block">
+                        <code>df -h                         # использование дисков
+df -i                         # использование inodes (не менее важно!)
+du -sh /var/* | sort -rh | head -10   # что занимает больше всего в /var</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Inodes:</strong> Даже если <code>df -h</code> показывает свободное место, <code>df -i</code> может показать 100% inodes. Это значит, что закончились «слоты» для файлов (много мелких файлов). Система не сможет создавать новые файлы!
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>vmstat: виртуальная память и CPU</h3>
+                    <div class="code-block">
+                        <code>vmstat 1                      # обновление каждую секунду
+# procs  -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+#  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs  us sy id wa st</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Ключевые колонки:</strong>
+                        <ul>
+                            <li><code>r</code> — процессы, ожидающие CPU (если больше ядер — перегрузка)</li>
+                            <li><code>b</code> — процессы в uninterruptible sleep (ждут I/O)</li>
+                            <li><code>wa</code> — процент CPU, потраченный на ожидание I/O (если &gt; 20% — проблема с диском)</li>
+                            <li><code>si</code>/<code>so</code> — swap in/out (если не 0 — не хватает RAM)</li>
+                            <li><code>id</code> — процент простоя CPU (idle)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>iostat: детальный I/O диска</h3>
+                    <div class="code-block">
+                        <code>sudo apt install sysstat       # если не установлен
+iostat -x 1                    # расширенный вывод каждую секунду</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Ключевые метрики:</strong>
+                        <ul>
+                            <li><code>%util</code> — загрузка диска (100% = диск перегружен)</li>
+                            <li><code>await</code> — среднее время ответа (мс). Если &gt; 50мс для SSD — проблема</li>
+                            <li><code>r/s</code>, <code>w/s</code> — операций чтения/записи в секунду</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>dmesg: сообщения ядра</h3>
+                    <div class="code-block">
+                        <code>dmesg -T                       # сообщения ядра с читаемыми timestamps
+dmesg -T | tail -50            # последние 50 записей
+dmesg -T | grep -i error       # только ошибки
+dmesg -T | grep -i "oom"       # OOM killer (убийца при нехватке памяти)
+journalctl -k                  # альтернатива через journalctl</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>OOM Killer:</strong> Если в dmesg есть <code>Out of memory: Killed process</code> — системе не хватает RAM, и ядро убивает процессы. Нужно добавить RAM или оптимизировать приложения.
+                    </div>
+                </div>
+            </section>
+
+            <!-- /proc -->
+            <section id="proc">
+                <h2 class="section-title">📂 /proc: информация о системе</h2>
+                <div class="theory-block">
+                    <h3>Виртуальная файловая система</h3>
+                    <p><code>/proc</code> — это не реальные файлы на диске. Это окно в ядро Linux. Каждый файл показывает состояние системы в реальном времени.</p>
+                    <div class="code-block">
+                        <code>cat /proc/cpuinfo              # информация о CPU (модель, ядра, частота)
+cat /proc/meminfo              # детальная информация о памяти
+cat /proc/loadavg              # load average (как uptime, но только числа)
+cat /proc/uptime               # сколько секунд система работает
+cat /proc/net/dev              # сетевые интерфейсы и трафик
+cat /proc/diskstats            # статистика дисков</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>/proc/PID — информация о процессе</h3>
+                    <div class="code-block">
+                        <code>ls /proc/1234/                 # что «видит» процесс
+cat /proc/1234/status          # статус процесса (память, потоки)
+cat /proc/1234/cmdline         # командная строка запуска
+cat /proc/1234/environ         # переменные окружения
+ls -l /proc/1234/exe           # путь к исполняемому файлу
+ls -l /proc/1234/fd            # открытые файловые дескрипторы</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Зачем?</strong> Если процесс ведёт себя странно — <code>/proc/PID/fd</code> покажет, какие файлы он держит открытыми. Если процесс съел всю память — <code>/proc/PID/status</code> покажет сколько.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: системные утилиты</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>uptime                         # load average
+nproc                          # количество ядер
+free -h                        # память
+df -h                          # диски
+df -i                          # inodes
+vmstat 1                       # виртуальная память (Ctrl+C для остановки)
+iostat -x 1                    # I/O дисков
+dmesg -T | tail -20            # последние сообщения ядра
+cat /proc/cpuinfo | grep "model name" | head -1  # модель CPU
+cat /proc/loadavg              # текущий load</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCRIPTS -->
+            <section id="scripts">
+                <h2 class="section-title">📝 Скрипты мониторинга</h2>
+                <div class="theory-block">
+                    <h3>Скрипт проверки места на диске</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+THRESHOLD=90
+USAGE=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+
+if [ "$USAGE" -gt "$THRESHOLD" ]; then
+    echo "⚠️ Диск заполнен на $USAGE%!" | wall
+    echo "$(date): Disk alert: $USAGE%" >> /var/log/disk-alert.log
+fi</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Скрипт проверки сервисов</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+SERVICES="nginx ssh mysql"
+
+for SERVICE in $SERVICES; do
+    if systemctl is-active --quiet "$SERVICE"; then
+        echo "✅ $SERVICE — работает"
+    else
+        echo "❌ $SERVICE — УПАЛ!" | wall
+        echo "$(date): $SERVICE is down!" >> /var/log/service-alert.log
+        # Попытка перезапуска:
+        sudo systemctl restart "$SERVICE"
+    fi
+done</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Скрипт проверки HTTP</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+URLS="https://google.com https://github.com http://localhost"
+
+for URL in $URLS; do
+    STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 5 "$URL")
+    if [ "$STATUS" -eq 200 ]; then
+        echo "✅ $URL — $STATUS OK"
+    else
+        echo "❌ $URL — $STATUS FAIL"
+    fi
+done</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ALERTS -->
+            <section id="alert">
+                <h2 class="section-title">🔔 Алерты в Telegram</h2>
+                <div class="theory-block">
+                    <h3>Создание бота</h3>
+                    <ol>
+                        <li>Напишите <code>@BotFather</code> в Telegram → <code>/newbot</code> → получите токен</li>
+                        <li>Напишите любое сообщение боту</li>
+                        <li>Получите chat_id: <code>curl -s https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates | grep chat_id</code></li>
+                    </ol>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Отправка уведомления</h3>
+                    <div class="code-block">
+                        <code>#!/bin/bash
+TOKEN="123456:ABC-DEF"
+CHAT_ID="987654321"
+
+send_alert() {
+    local MESSAGE="$1"
+    curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
+         -d chat_id="$CHAT_ID" \
+         -d text="$MESSAGE" \
+         -d parse_mode="Markdown" > /dev/null
+}
+
+# Использование:
+DISK_USAGE=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+if [ "$DISK_USAGE" -gt 90 ]; then
+    send_alert "⚠️ *Диск заполнен на ${DISK_USAGE}%!*
+Сервер: $(hostname)
+Время: $(date)"
+fi</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Создайте функцию <code>send_alert()</code> один раз и используйте её во всех скриптах. Подключите через <code>source /usr/local/bin/alert.sh</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROMETHEUS + GRAFANA -->
+            <section id="prometheus">
+                <h2 class="section-title">📈 Prometheus + Grafana: обзор</h2>
+                <div class="theory-block">
+                    <h3>Что это?</h3>
+                    <p>Это стандарт индустрии для мониторинга серверов. Два инструмента работают вместе:</p>
+                    <ul>
+                        <li><strong>Prometheus</strong> — собирает и хранит метрики (числа). Опрашивает серверы каждые N секунд.</li>
+                        <li><strong>Grafana</strong> — рисует красивые графики из данных Prometheus. Создаёт алерты.</li>
+                        <li><strong>Node Exporter</strong> — агент, который отдаёт метрики сервера (CPU, RAM, диск, сеть) в Prometheus.</li>
+                    </ul>
+
+                    <pre>
+┌──────────────┐    pull     ┌───────────────┐
+│  Prometheus   │◄────────────│ Node Exporter │ (на каждом сервере)
+│  (хранение)   │             │ :9100         │
+└──────┬───────┘             └───────────────┘
+       │
+       ▼
+┌──────────────┐
+│   Grafana     │  ← Графики, дашборды, алерты
+│  (визуализация)│
+└──────────────┘</pre>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Быстрая установка через Docker</h3>
+                    <div class="code-block">
+                        <code># 1. Node Exporter (собирает метрики):
+docker run -d --name=node_exporter \
+  --net="host" \
+  --pid="host" \
+  -v "/:/host:ro,rslave" \
+  prom/node-exporter:latest \
+  --path.rootfs=/host
+
+# 2. Prometheus (хранит):
+# Создайте prometheus.yml:
+# global:
+#   scrape_interval: 15s
+# scrape_configs:
+#   - job_name: 'node'
+#     static_configs:
+#       - targets: ['localhost:9100']
+
+docker run -d --name=prometheus \
+  -p 9090:9090 \
+  -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml \
+  prom/prometheus
+
+# 3. Grafana (визуализирует):
+docker run -d --name=grafana \
+  -p 3000:3000 \
+  grafana/grafana-oss
+
+# Откройте http://localhost:3000 (admin/admin)
+# Добавьте Prometheus как Data Source (http://localhost:9090)
+# Импортируйте Dashboard ID 1860 (Node Exporter Full)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Готовые дашборды:</strong> На сайте <a href="https://grafana.com/grafana/dashboards/" style="color: var(--accent-blue);">grafana.com/grafana/dashboards</a> есть тысячи готовых дашбордов. Dashboard ID <strong>1860</strong> — самый популярный для мониторинга Linux-сервера.
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: «Сервер тормозит» — быстрая диагностика</h3>
+                    <div class="code-block">
+                        <code># 1. Load average
+uptime
+nproc  # если load > nproc — перегрузка
+
+# 2. Кто ест CPU?
+top -bn1 | head -20
+
+# 3. Кто ест память?
+free -h
+ps aux --sort=-%mem | head -10
+
+# 4. Диск
+df -h
+df -i  # inodes!
+
+# 5. I/O
+iostat -x 1  # если %util = 100% — диск перегружен
+
+# 6. Ядро
+dmesg -T | tail -30  # OOM killer? hardware errors?</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Настройка полного мониторинга за 10 минут</h3>
+                    <ol>
+                        <li>Создайте скрипт проверки: диск, память, сервисы, HTTP</li>
+                        <li>Добавьте функцию <code>send_alert()</code> с Telegram-ботом</li>
+                        <li>Добавьте скрипт в cron: <code>*/5 * * * * /usr/local/bin/monitor.sh</code></li>
+                        <li>Для визуализации — установите Prometheus + Grafana + Node Exporter</li>
+                        <li>Импортируйте Dashboard 1860 в Grafana</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ Высокий load average, но CPU свободен</strong>
+                    <ul>
+                        <li>Процессы ждут I/O (диск)</li>
+                        <li>Проверьте: <code>vmstat 1</code> — колонка <code>wa</code> (I/O wait)</li>
+                        <li>Проверьте: <code>iostat -x 1</code> — колонка <code>%util</code></li>
+                        <li>Решение: более быстрый диск (SSD), оптимизация запросов</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Памяти «нет», но free показывает много buff/cache</strong>
+                    <ul>
+                        <li>Это нормально! Linux кэширует диски в свободную память</li>
+                        <li>Смотрите колонку <code>available</code>, а не <code>free</code></li>
+                        <li>Если <code>available</code> мало — проблема реальная</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "No space left on device", но df показывает место</strong>
+                    <ul>
+                        <li>Проверьте inodes: <code>df -i</code></li>
+                        <li>Если inodes = 100% — слишком много мелких файлов</li>
+                        <li>Найдите: <code>find / -xdev -printf '%h\n' | sort | uniq -c | sort -rn | head</code></li>
+                        <li>Удалите ненужные файлы (сесии, временные файлы, кэш)</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ OOM Killer убивает процессы</strong>
+                    <ul>
+                        <li>Проверьте: <code>dmesg -T | grep -i oom</code></li>
+                        <li>Системе не хватает RAM</li>
+                        <li>Найдите, кто ест память: <code>ps aux --sort=-%mem | head</code></li>
+                        <li>Решение: добавить RAM, swap, или оптимизировать приложение</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Алерт в Telegram не приходит</strong>
+                    <ul>
+                        <li>Проверьте токен и chat_id: <code>curl https://api.telegram.org/botTOKEN/getMe</code></li>
+                        <li>Убедитесь, что написали боту хотя бы одно сообщение</li>
+                        <li>Проверьте, что cron запускает скрипт: <code>sudo journalctl -u cron -f</code></li>
+                        <li>Проверьте переменные: cron имеет минимальный PATH — указывайте полные пути к командам</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Совет:</strong> Если скрипт работает в терминале, но не в cron — проблема почти всегда в окружении. В cron нет <code>PATH</code>, нет переменных. Используйте полные пути: <code>/usr/bin/curl</code> вместо <code>curl</code>, <code>/bin/df</code> вместо <code>df</code>.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Посмотри load average и сравни с количеством ядер (<code>uptime</code> + <code>nproc</code>)</li>
+                        <li class="task-item">Посмотри доступную память: <code>free -h</code>. Какая колонка — <code>free</code> или <code>available</code> — важнее?</li>
+                        <li class="task-item">Проверь использование диска и inodes: <code>df -h</code> и <code>df -i</code></li>
+                        <li class="task-item">Посмотри сообщения ядра: <code>dmesg -T | tail -30</code></li>
+                        <li class="task-item">Запусти <code>vmstat 1</code> на 10 секунд, найди колонку <code>id</code> (idle CPU)</li>
+                        <li class="task-item">Напиши скрипт, который проверяет, запущен ли nginx, и выводит предупреждение через <code>wall</code></li>
+                        <li class="task-item">Настрой отправку алерта в Telegram при нехватке места (&gt; 80%)</li>
+                        <li class="task-item">Добавь скрипт проверки в cron на каждые 5 минут</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Напишите скрипт, который проверяет одновременно: диск, память, CPU load, 3 HTTP-сайта — и отправляет ОДИН сводный алерт в Telegram, если что-то не в порядке</li>
+                        <li class="task-item">Найдите процесс, который использует больше всего открытых файлов: проверьте <code>/proc/PID/fd</code> для топ-5 процессов по памяти</li>
+                        <li class="task-item">Настройте Prometheus + Node Exporter через Docker, откройте <code>http://localhost:9090</code> и выполните запрос <code>node_cpu_seconds_total</code></li>
+                        <li class="task-item">Создайте cron-задачу, которая каждый день в 6 утра отправляет в Telegram отчёт: диск, память, uptime, количество запущенных сервисов</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>uptime</code>
+                            <p>Load average (1/5/15 мин)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>nproc</code>
+                            <p>Количество ядер CPU</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>free -h</code>
+                            <p>Память (смотрите available!)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>df -h</code>
+                            <p>Место на дисках</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>df -i</code>
+                            <p>Inodes (не менее важно!)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>du -sh /* | sort -rh | head</code>
+                            <p>Что занимает место</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>vmstat 1</code>
+                            <p>CPU, память, swap, I/O</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>iostat -x 1</code>
+                            <p>Детальный I/O дисков</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dmesg -T</code>
+                            <p>Сообщения ядра</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dmesg | grep -i oom</code>
+                            <p>OOM Killer</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /proc/cpuinfo</code>
+                            <p>Информация о CPU</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /proc/meminfo</code>
+                            <p>Детальная память</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /proc/PID/status</code>
+                            <p>Статус процесса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>curl -s -w "%{http_code}" url</code>
+                            <p>Проверить HTTP-статус</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl is-active srv</code>
+                            <p>Работает ли сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>crontab -e</code>
+                            <p>Редактировать cron</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>*/5 * * * * /script.sh</code>
+                            <p>Каждые 5 минут</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>curl -X POST api.telegram...</code>
+                            <p>Алерт в Telegram</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sar -u 1</code>
+                            <p>Историческая загрузка CPU</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -k</code>
+                            <p>Логи ядра</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module10.html" class="nav-btn">← Модуль 10: Bash</a>
+                <a href="module12.html" class="nav-btn">Модуль 12: Хранение →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

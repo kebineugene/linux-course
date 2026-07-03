@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 5: Демоны и systemd - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>👻 Модуль 5</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: systemd</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: unit-файлы</a></li>
+                <li><a href="#journalctl" class="nav-item">Логи: journalctl</a></li>
+                <li><a href="#theory2" class="nav-item">Теория: Таймеры</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: таймеры</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 5: Демоны и systemd</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <section id="intro">
+                <h2 class="section-title">👻 Что такое демон?</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу systemd?</h3>
+                    <p>Демон — фоновый процесс, который работает без интерактивного ввода. systemd — современная система инициализации, которая управляет демонами, сокетами, таймерами. Это <strong>сердце современного Linux</strong>.</p>
+                    <ul>
+                        <li><strong> Автозапуск</strong> — сервисы запускаются при загрузке системы</li>
+                        <li><strong>🔄 Автоматический рестарт</strong> — если сервис упал, systemd его поднимет</li>
+                        <li><strong>📊 Логи</strong> — централизованный сбор логов всех сервисов</li>
+                        <li><strong>⏰ Таймеры</strong> — замена cron для регулярных задач</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Аналогия:</strong> systemd — это диспетчер в аэропорту. Он знает, какие рейсы (сервисы) должны лететь, когда их запускать, что делать при задержках, и ведёт журнал всех событий.
+                </div>
+            </section>
+
+            <section id="theory1">
+                <h2 class="section-title">📖 Теория: systemd</h2>
+                <div class="theory-block">
+                    <h3>Unit-файлы: анатомия сервиса</h3>
+                    <p>Каждый сервис описывается unit-файлом в <code>/etc/systemd/system/</code> или <code>/lib/systemd/system/</code>. Структура:</p>
+                    <div class="code-block">
+                        <code>[Unit]
+Description=My Application
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/myapp
+ExecStart=/usr/bin/python3 app.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Разбор секций:</strong>
+                        <ul>
+                            <li><code>[Unit]</code> — метаинформация, зависимости</li>
+                            <li><code>[Service]</code> — как запускать, от кого, что делать при падении</li>
+                            <li><code>[Install]</code> — когда запускать (при какой цели системы)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Типы сервисов (Type)</h3>
+                    <div class="code-block">
+                        <code>Type=simple        # стандартный (процесс не форкается)
+Type=forking       # процесс создаёт дочерний и выходит (старые демоны)
+Type=oneshot       # выполнить один раз и выйти (скрипты инициализации)
+Type=notify        # сервис сам сообщает о готовности</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Цели системы (Targets)</h3>
+                    <p>Targets — это "состояния" системы, аналог runlevels в old init:</p>
+                    <div class="code-block">
+                        <code>multi-user.target    # многопользовательский режим без GUI (серверы)
+graphical.target     # с графическим интерфейсом
+rescue.target        # режим восстановления
+emergency.target     # аварийный режим (только root)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Для серверов</strong> обычно используется <code>multi-user.target</code>. GUI на серверах не нужен — экономит ресурсы.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Политика рестарта</h3>
+                    <div class="code-block">
+                        <code>Restart=no           # не перезапускать (по умолчанию)
+Restart=always       # всегда перезапускать
+Restart=on-failure   # только при ошибке (non-zero exit code)
+RestartSec=5         # ждать 5 секунд перед рестартом
+StartLimitBurst=5    # максимум 5 попыток за период
+StartLimitIntervalSec=60  # период для подсчёта попыток</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Важно:</strong> Если сервис падает сразу после запуска, systemd может бесконечно его перезапускать. Используйте <code>StartLimitBurst</code> для ограничения.
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: unit-файлы</h2>
+                <div class="practice-block">
+                    <h3>Создание своего сервиса</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём скрипт
+sudo nano /usr/local/bin/hello-service.sh
+
+#!/bin/bash
+while true; do
+    echo "$(date): Hello from service" >> /tmp/hello.log
+    sleep 10
+done
+
+# 2. Делаем исполняемым
+sudo chmod +x /usr/local/bin/hello-service.sh
+
+# 3. Создаём unit-файл
+sudo nano /etc/systemd/system/hello.service
+
+[Unit]
+Description=Hello Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/hello-service.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+# 4. Активируем сервис
+sudo systemctl daemon-reload
+sudo systemctl start hello
+sudo systemctl enable hello
+sudo systemctl status hello
+
+# 5. Проверяем логи
+tail -f /tmp/hello.log</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Управление сервисом</h3>
+                    <div class="code-block">
+                        <code>sudo systemctl status hello        # статус
+sudo systemctl stop hello            # остановить
+sudo systemctl start hello           # запустить
+sudo systemctl restart hello         # перезапустить
+sudo systemctl reload hello          # перечитать конфиги (если поддерживает)
+sudo systemctl disable hello         # убрать из автозагрузки
+sudo systemctl mask hello            # полностью заблокировать
+sudo systemctl unmask hello          # разблокировать</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="journalctl">
+                <h2 class="section-title">📋 Логи: journalctl</h2>
+                <div class="theory-block">
+                    <h3>Централизованные логи systemd</h3>
+                    <p>systemd собирает логи всех сервисов в единый журнал. Это мощнее, чем старые текстовые логи в <code>/var/log/</code>.</p>
+                    <div class="code-block">
+                        <code>sudo journalctl -u hello                  # логи сервиса hello
+sudo journalctl -u hello -f                  # следить в реальном времени
+sudo journalctl -u hello --since today       # логи за сегодня
+sudo journalctl -u hello --since "1 hour ago"  # за последний час
+sudo journalctl -u hello -n 50               # последние 50 строк
+sudo journalctl -u hello -p err              # только ошибки
+sudo journalctl -u hello --no-pager          # без постраничного вывода</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Критично для админа:</strong> Если сервис не запускается — первым делом смотрите <code>journalctl -u &lt;сервис&gt; -n 50</code>. Там будет причина ошибки.
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Практика с логами</h3>
+                    <div class="code-block">
+                        <code># Посмотреть все логи сервиса
+sudo journalctl -u hello
+
+# Следить за логами в реальном времени (как tail -f)
+sudo journalctl -u hello -f
+
+# Найти ошибки
+sudo journalctl -u hello -p err
+
+# Логи за последний час
+sudo journalctl -u hello --since "1 hour ago"
+
+# Экспорт логов в файл
+sudo journalctl -u hello > /tmp/hello-logs.txt</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="theory2">
+                <h2 class="section-title"> Теория: Таймеры</h2>
+                <div class="theory-block">
+                    <h3>systemd timer vs cron</h3>
+                    <p>systemd таймеры — современная замена cron. Преимущества:</p>
+                    <ul>
+                        <li><strong>📊 Логи</strong> — автоматически пишутся в journalctl</li>
+                        <li><strong>🔄 Зависимости</strong> — можно указать, что таймер зависит от сервиса</li>
+                        <li><strong>️ Точность</strong> — можно задать случайную задержку (RandomizedDelaySec)</li>
+                        <li><strong> Мониторинг</strong> — <code>systemctl list-timers</code> показывает все таймеры</li>
+                    </ul>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Создание таймера</h3>
+                    <p>Таймер состоит из двух файлов: <code>.service</code> (что делать) и <code>.timer</code> (когда делать).</p>
+                    <div class="code-block">
+                        <code># Файл: /etc/systemd/system/backup.timer
+
+[Unit]
+Description=Daily Backup Timer
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Параметры таймера:</strong>
+                        <ul>
+                            <li><code>OnCalendar=daily</code> — каждый день в полночь</li>
+                            <li><code>OnCalendar=*:0/10</code> — каждые 10 минут</li>
+                            <li><code>OnCalendar=Mon *-*-* 09:00:00</code> — каждый понедельник в 9:00</li>
+                            <li><code>Persistent=true</code> — выполнить пропущенные задания после простоя</li>
+                            <li><code>RandomizedDelaySec=1h</code> — случайная задержка до 1 часа (чтобы не все серверы одновременно запускались)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Управление таймерами</h3>
+                    <div class="code-block">
+                        <code>sudo systemctl daemon-reload
+sudo systemctl start backup.timer
+sudo systemctl enable backup.timer
+systemctl list-timers                    # показать все таймеры
+systemctl list-timers --all              # включая неактивные
+sudo systemctl stop backup.timer
+sudo systemctl disable backup.timer</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: таймеры</h2>
+                <div class="practice-block">
+                    <h3>Создание таймера для бэкапа</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём сервис
+sudo nano /etc/systemd/system/backup.service
+
+[Unit]
+Description=Backup Service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'tar -czf /tmp/backup-$(date +%Y%m%d).tar.gz /home/user/documents'
+
+# 2. Создаём таймер
+sudo nano /etc/systemd/system/backup.timer
+
+[Unit]
+Description=Daily Backup Timer
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+# 3. Активируем
+sudo systemctl daemon-reload
+sudo systemctl start backup.timer
+sudo systemctl enable backup.timer
+
+# 4. Проверяем
+systemctl list-timers</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Создание сервиса для Node.js приложения</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём unit-файл
+sudo nano /etc/systemd/system/myapp.service
+
+[Unit]
+Description=My Node.js App
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/myapp
+ExecStart=/usr/bin/node /var/www/myapp/app.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+
+# 2. Активируем
+sudo systemctl daemon-reload
+sudo systemctl start myapp
+sudo systemctl enable myapp
+
+# 3. Проверяем
+sudo systemctl status myapp
+sudo journalctl -u myapp -f</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Сервис не запускается — диагностика</h3>
+                    <div class="code-block">
+                        <code># 1. Проверяем статус
+sudo systemctl status myapp
+
+# 2. Смотрим логи
+sudo journalctl -u myapp -n 50
+
+# 3. Проверяем синтаксис unit-файла
+sudo systemd-analyze verify /etc/systemd/system/myapp.service
+
+# 4. Проверяем зависимости
+sudo systemctl list-dependencies myapp
+
+# 5. Тестовый запуск вручную
+sudo -u www-data /usr/bin/node /var/www/myapp/app.js</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: Настройка автоматического бэкапа</h3>
+                    <div class="code-block">
+                        <code># Создаём скрипт бэкапа
+sudo nano /usr/local/bin/backup.sh
+
+#!/bin/bash
+DATE=$(date +%Y%m%d_%H%M%S)
+tar -czf /backup/db-$DATE.tar.gz /var/lib/mysql
+find /backup -mtime +7 -delete  # удалить старые бэкапы
+
+# Делаем исполняемым
+sudo chmod +x /usr/local/bin/backup.sh
+
+# Создаём timer (как в практике выше)
+# Запускаем каждый день в 3:00</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Failed to start &lt;service&gt;.service"</strong>
+                    <ul>
+                        <li>Сервис не запустился</li>
+                        <li>Смотрите логи: <code>sudo journalctl -u &lt;сервис&gt; -n 50</code></li>
+                        <li>Проверьте синтаксис: <code>sudo systemd-analyze verify /etc/systemd/system/&lt;сервис&gt;.service</code></li>
+                        <li>Проверьте права на исполняемый файл</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Unit file not found"</strong>
+                    <ul>
+                        <li>Unit-файл не найден</li>
+                        <li>Проверьте путь: <code>/etc/systemd/system/</code> или <code>/lib/systemd/system/</code></li>
+                        <li>Выполните: <code>sudo systemctl daemon-reload</code></li>
+                        <li>Проверьте расширение файла (должно быть <code>.service</code>)</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Сервис постоянно перезапускается</strong>
+                    <ul>
+                        <li>Проверьте логи: <code>sudo journalctl -u &lt;сервис&gt; -f</code></li>
+                        <li>Возможно, ошибка в конфигурации приложения</li>
+                        <li>Проверьте <code>RestartSec</code> — может быть слишком маленьким</li>
+                        <li>Добавьте <code>StartLimitBurst=3</code> для ограничения попыток</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Permission denied" при запуске</strong>
+                    <ul>
+                        <li>Проверьте права на исполняемый файл: <code>ls -l /path/to/script</code></li>
+                        <li>Добавьте <code>chmod +x</code></li>
+                        <li>Проверьте пользователя в unit-файле (<code>User=</code>)</li>
+                        <li>Проверьте SELinux/AppArmor, если включены</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ Таймер не срабатывает</strong>
+                    <ul>
+                        <li>Проверьте, что таймер активен: <code>systemctl list-timers</code></li>
+                        <li>Проверьте синтаксис <code>OnCalendar</code></li>
+                        <li>Убедитесь, что сервис существует: <code>systemctl status &lt;имя&gt;.service</code></li>
+                        <li>Проверьте <code>Persistent=true</code> для пропущенных заданий</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если сервис не запускается, попробуйте запустить команду вручную от имени пользователя, указанного в unit-файле: <code>sudo -u www-data /path/to/command</code>. Это покажет ошибки, которые systemd не логирует.
+                </div>
+            </section>
+
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создай скрипт <code>/usr/local/bin/hello.sh</code>, который пишет дату в <code>/tmp/hello.log</code> каждые 10 секунд</li>
+                        <li class="task-item">Создай unit-файл <code>/etc/systemd/system/hello.service</code> для этого скрипта</li>
+                        <li class="task-item">Активируй сервис: <code>daemon-reload</code>, <code>start</code>, <code>enable</code></li>
+                        <li class="task-item">Проверь статус: <code>systemctl status hello</code></li>
+                        <li class="task-item">Посмотри логи: <code>journalctl -u hello -n 20</code></li>
+                        <li class="task-item">Настрой автоматический рестарт при падении (<code>Restart=always</code>)</li>
+                        <li class="task-item">Создай таймер, который запускает команду каждый час</li>
+                        <li class="task-item">Посмотри все активные таймеры: <code>systemctl list-timers</code></li>
+                        <li class="task-item">Останови сервис и проверь, что он остановился</li>
+                        <li class="task-item">Замаскируй сервис (<code>mask</code>) и попробуй запустить — должно не получиться</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создайте сервис для Python/Node.js приложения с правильными настройками безопасности (User, WorkingDirectory)</li>
+                        <li class="task-item">Настройте таймер с <code>RandomizedDelaySec</code> и <code>Persistent=true</code></li>
+                        <li class="task-item">Создайте сервис, который зависит от другого сервиса (<code>After=</code>, <code>Wants=</code>)</li>
+                        <li class="task-item">Найдите все упавшие сервисы: <code>systemctl --failed</code> и попробуйте их исправить</li>
+                        <li class="task-item">Создайте timer, который запускает бэкап базы данных каждый день в 3:00 ночи</li>
+                        <li class="task-item">Настройте сервис с ограничением ресурсов (<code>MemoryLimit=</code>, <code>CPUQuota=</code>)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>systemctl start srv</code>
+                            <p>Запустить сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl stop srv</code>
+                            <p>Остановить сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl restart srv</code>
+                            <p>Перезапустить сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl reload srv</code>
+                            <p>Перечитать конфиги</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl enable srv</code>
+                            <p>Включить автозапуск</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl disable srv</code>
+                            <p>Отключить автозапуск</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl status srv</code>
+                            <p>Статус сервиса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl mask srv</code>
+                            <p>Полностью заблокировать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>daemon-reload</code>
+                            <p>Перечитать unit-файлы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u srv</code>
+                            <p>Логи сервиса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u srv -f</code>
+                            <p>Следить за логами</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>journalctl -u srv -p err</code>
+                            <p>Только ошибки</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>list-timers</code>
+                            <p>Показать все таймеры</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemctl --failed</code>
+                            <p>Упавшие сервисы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>OnCalendar=daily</code>
+                            <p>Каждый день</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>OnCalendar=*:0/10</code>
+                            <p>Каждые 10 минут</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>Restart=always</code>
+                            <p>Всегда перезапускать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>RestartSec=5</code>
+                            <p>Ждать 5 сек перед рестартом</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>WantedBy=multi-user.target</code>
+                            <p>Для серверов (без GUI)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>Type=simple</code>
+                            <p>Стандартный сервис</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>Type=oneshot</code>
+                            <p>Выполнить один раз</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>systemd-analyze verify</code>
+                            <p>Проверить синтаксис unit</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module4.html" class="nav-btn">← Модуль 4: Пакеты</a>
+                <a href="module6.html" class="nav-btn">Модуль 6: Безопасность →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

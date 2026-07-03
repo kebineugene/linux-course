@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Administration Course</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>🐧 Linux Course</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Что это и для кого</a></li>
+                <li><a href="#stats" class="nav-item">Ваш прогресс</a></li>
+                <li><a href="#paths" class="nav-item">Маршруты обучения</a></li>
+                <li><a href="#modules" class="nav-item">Все модули</a></li>
+                <li><a href="#practice" class="nav-item">Как практиковаться</a></li>
+                <li><a href="#next-steps" class="nav-item">Что дальше?</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>🐧 Linux Administration Course</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">💡 Что это и для кого</h2>
+                <div class="info-block">
+                    <p>Перед вами <strong>интерактивный тренажёр</strong>, который поможет быстро освоить Linux на практике. Он не сделает вас экспертом за один вечер, но даст прочный фундамент и уверенность для работы с сервером, учёбы или стажировки.</p>
+                </div>
+
+                <div class="success-block">
+                    <h3>🚀 Что вы получите</h3>
+                    <ul>
+                        <li><strong>13 насыщенных модулей</strong> с живыми командами и заданиями для самопроверки</li>
+                        <li><strong>Практику в реальном терминале</strong> — мы не прячем вас в песочницу, а сразу учим работать как администратор (WSL, macOS, Linux)</li>
+                        <li><strong>Мотивирующий прогресс-бар</strong> — всё, что вы прошли, сохраняется локально в браузере, без регистраций и отправки данных</li>
+                        <li><strong>Полную автономность</strong> — курс работает без интернета, без сервера, просто откройте файл или запустите прилагаемый лаунчер</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <h3>🤔 Чем этот курс НЕ является</h3>
+                    <ul>
+                        <li><strong>Не энциклопедия.</strong> Мы намеренно не включали редкие утилиты и углублённые тонкости ядра — только то, что нужно каждый день</li>
+                        <li><strong>Не замена практическому опыту.</strong> После прохождения у вас будет база, но настоящее мастерство придёт с реальными задачами</li>
+                        <li><strong>Не сервис с облачным прогрессом.</strong> Ваши достижения хранятся только у вас в браузере (localStorage). Это осознанный выбор в пользу простоты и конфиденциальности</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🎯 Суть:</strong> это ваш личный тренажёр для входа в Linux. Откройте, делайте задания, возвращайтесь в любой момент — и через пару недель вы сможете уверенно администрировать сервер.
+                </div>
+            </section>
+
+            <!-- STATS -->
+            <section id="stats">
+                <h2 class="section-title">📊 Ваш прогресс</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedModules">0/13</div>
+                        <div class="stat-label">Модулей пройдено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="overallProgress">0%</div>
+                        <div class="stat-label">Общий прогресс</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedTasks">0</div>
+                        <div class="stat-label">Заданий выполнено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="estimatedTime">~13ч</div>
+                        <div class="stat-label">Осталось времени</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LEARNING PATHS -->
+            <section id="paths">
+                <h2 class="section-title">🗺️ Маршруты обучения</h2>
+                <div class="paths-grid">
+                    <div class="path-card">
+                        <h3>🚀 Полный курс</h3>
+                        <p>Для новичков: пройдите все 13 модулей по порядку</p>
+                        <a href="modules/module1.html" class="path-btn">Начать с начала</a>
+                    </div>
+                    <div class="path-card">
+                        <h3>⚡ Быстрый старт</h3>
+                        <p>Для опытных: модули 6-13 (безопасность, сети, Docker)</p>
+                        <a href="modules/module6.html" class="path-btn">Перейти к продвинутому</a>
+                    </div>
+                    <div class="path-card">
+                        <h3>🎯 Конкретная задача</h3>
+                        <p>Нужно настроить Docker? Перейдите сразу к модулю 13</p>
+                        <a href="modules/module13.html" class="path-btn">Модуль 13: Docker</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULES -->
+            <section id="modules">
+                <h2 class="section-title">📚 Все модули</h2>
+                <div class="modules-grid">
+                    <div class="module-card" data-module="1">
+                        <span class="module-icon"></span>
+                        <h3>Модуль 1</h3>
+                        <p>Файлы и навигация</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module1.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="2">
+                        <span class="module-icon">🔐</span>
+                        <h3>Модуль 2</h3>
+                        <p>Права доступа</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module2.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="3">
+                        <span class="module-icon">️</span>
+                        <h3>Модуль 3</h3>
+                        <p>Процессы</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module3.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="4">
+                        <span class="module-icon">📦</span>
+                        <h3>Модуль 4</h3>
+                        <p>Пакеты и сервисы</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module4.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="5">
+                        <span class="module-icon">👻</span>
+                        <h3>Модуль 5</h3>
+                        <p>Демоны и systemd</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module5.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="6">
+                        <span class="module-icon">🔒</span>
+                        <h3>Модуль 6</h3>
+                        <p>Безопасность</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module6.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="7">
+                        <span class="module-icon">🕵️</span>
+                        <h3>Модуль 7</h3>
+                        <p>Траблшутинг</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module7.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="8">
+                        <span class="module-icon">📜</span>
+                        <h3>Модуль 8</h3>
+                        <p>Логи</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module8.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="9">
+                        <span class="module-icon">🌐</span>
+                        <h3>Модуль 9</h3>
+                        <p>Сеть</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module9.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="10">
+                        <span class="module-icon">⚡</span>
+                        <h3>Модуль 10</h3>
+                        <p>Bash-скрипты</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module10.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="11">
+                        <span class="module-icon">📈</span>
+                        <h3>Модуль 11</h3>
+                        <p>Мониторинг</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module11.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="12">
+                        <span class="module-icon">💾</span>
+                        <h3>Модуль 12</h3>
+                        <p>Хранение</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module12.html" class="module-link">Открыть →</a>
+                    </div>
+                    <div class="module-card" data-module="13">
+                        <span class="module-icon">🐳</span>
+                        <h3>Модуль 13</h3>
+                        <p>Docker</p>
+                        <div class="module-progress">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-label">0%</span>
+                        <a href="modules/module13.html" class="module-link">Открыть →</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE -->
+            <section id="practice">
+                <h2 class="section-title">💻 Как практиковаться</h2>
+                <div class="info-block">
+                    <h3>🪟 Windows</h3>
+                    <p>Установите WSL2 командой в PowerShell:</p>
+                    <div class="code-block">
+                        <code>wsl --install -d Ubuntu</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <p>После перезагрузки откройте Ubuntu из меню Пуск и используйте её терминал.</p>
+                </div>
+
+                <div class="info-block">
+                    <h3> Mac / 🐧 Linux</h3>
+                    <p>Откройте встроенный терминал (Terminal.app или Konsole/GNOME Terminal).</p>
+                </div>
+
+                <div class="info-block">
+                    <h3>🌍 Онлайн-песочницы</h3>
+                    <ul>
+                        <li><a href="https://killercoda.com/" target="_blank">Killercoda</a> — бесплатные сценарии в браузере</li>
+                        <li><a href="https://labs.play-with-docker.com/" target="_blank">Play with Docker</a> — Docker в браузере</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- NEXT STEPS -->
+            <section id="next-steps">
+                <h2 class="section-title"> Что дальше после курса?</h2>
+                <div class="next-steps-grid">
+                    <div class="next-step-card">
+                        <h3>📚 Сертификация</h3>
+                        <p>Подготовьтесь к LPIC-1 или RHCSA — это стандарты индустрии</p>
+                    </div>
+                    <div class="next-step-card">
+                        <h3> Домашний сервер</h3>
+                        <p>Настройте Raspberry Pi или старый ПК как сервер для практики</p>
+                    </div>
+                    <div class="next-step-card">
+                        <h3>🌐 Сообщество</h3>
+                        <p>Присоединяйтесь к Linux-форумам: Reddit r/linuxadmin, Stack Overflow</p>
+                    </div>
+                    <div class="next-step-card">
+                        <h3>💼 DevOps</h3>
+                        <p>Изучите Kubernetes, CI/CD, Terraform — следующий уровень после Linux</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <div class="cta-block">
+                <a href="modules/module1.html" class="cta-btn">🚀 Начать с Модуля 1</a>
+                <button onclick="resetProgress()" class="reset-btn"> Сбросить прогресс</button>
+            </div>
+
+            <!-- FOOTER -->
+            <footer class="footer">
+                <p>Создано с ❤️ <strong>Eugene Kebin</strong> для изучения Linux</p>
+                <p>Лицензия: MIT — используйте свободно</p>
+                <p>Версия: 2.0 | Обновлено: 08.07.2026</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

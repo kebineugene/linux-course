@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 9: Сеть - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>🌐 Модуль 9</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: IP, интерфейсы</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: диагностика</a></li>
+                <li><a href="#dns" class="nav-item">DNS</a></li>
+                <li><a href="#ports" class="nav-item">Порты и сокеты</a></li>
+                <li><a href="#curl" class="nav-item">cURL</a></li>
+                <li><a href="#ssh-tunnels" class="nav-item">SSH-туннели</a></li>
+                <li><a href="#firewall" class="nav-item">Фаервол и tcpdump</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 9: Сеть</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🌍 Сеть — кровеносная система сервера</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу сеть?</h3>
+                    <p>Без сети сервер бесполезен. Админ должен уметь:</p>
+                    <ul>
+                        <li><strong>🔍 Диагностировать</strong> — почему не пингуется? почему DNS не резолвит?</li>
+                        <li><strong>🚪 Управлять портами</strong> — кто слушает? что заблокировано?</li>
+                        <li><strong>🔐 Туннелировать</strong> — как безопасно добраться до внутренней базы данных?</li>
+                        <li><strong>🛡️ Защищать</strong> — фаервол, фильтрация трафика</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Аналогия:</strong> Сеть — это почтовая система. IP-адрес — адрес дома, порт — номер квартиры, DNS — телефонный справочник, фаервол — охрана на входе.
+                </div>
+            </section>
+
+            <!-- THEORY: IP -->
+            <section id="theory1">
+                <h2 class="section-title">📖 Теория: IP-адреса и интерфейсы</h2>
+                <div class="theory-block">
+                    <h3>Сетевые интерфейсы</h3>
+                    <p>Каждое сетевое подключение — это интерфейс. У сервера может быть несколько: физическая карта, виртуальная, loopback.</p>
+                    <div class="code-block">
+                        <code>ip a                          # все интерфейсы и их IP-адреса
+ip a show eth0                # конкретный интерфейс
+ip r                          # таблица маршрутизации (куда идут пакеты)
+ip link show                  # статус интерфейсов (UP/DOWN)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Типичные интерфейсы:</strong>
+                        <ul>
+                            <li><code>lo</code> — loopback (127.0.0.1), связь с самим собой</li>
+                            <li><code>eth0</code> / <code>ens33</code> — основной сетевой адаптер</li>
+                            <li><code>docker0</code> — виртуальный мост Docker</li>
+                            <li><code>wlan0</code> — Wi-Fi адаптер</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Проверка доступности</h3>
+                    <div class="code-block">
+                        <code>ping -c 4 8.8.8.8             # 4 пинга до Google DNS
+ping -c 4 ya.ru                # пинг по имени (проверяет и DNS)
+traceroute ya.ru               # маршрут до хоста (какие роутеры на пути)
+mtr ya.ru                      # улучшенный traceroute (непрерывный)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Пинг проверяет три вещи:</strong>
+                        <ol>
+                            <li>Работает ли сетевой интерфейс</li>
+                            <li>Есть ли маршрут до цели</li>
+                            <li>Отвечает ли удалённый хост</li>
+                        </ol>
+                        Если <code>ping 8.8.8.8</code> работает, а <code>ping ya.ru</code> нет — проблема в DNS, не в сети.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE: DIAGNOSTICS -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: базовая диагностика</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>ip a                           # мой IP-адрес
+ip r                           # шлюз по умолчанию
+ping -c 4 1.1.1.1             # есть ли интернет?
+ping -c 4 google.com          # работает ли DNS?
+traceroute google.com         # маршрут до Google</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DNS -->
+            <section id="dns">
+                <h2 class="section-title">📖 DNS: как имена становятся адресами</h2>
+                <div class="theory-block">
+                    <h3>Что такое DNS?</h3>
+                    <p>DNS (Domain Name System) — система, которая превращает <code>google.com</code> в <code>142.250.74.46</code>. Без DNS пришлось бы запоминать IP-адреса.</p>
+
+                    <pre>
+Вы вводите: google.com
+       │
+       ▼
+┌─────────────────┐
+│  /etc/hosts      │ ← Проверяется ПЕРВЫМ
+│  (локальная табл)│
+└───────┬─────────┘
+        │ не найдено
+        ▼
+┌─────────────────┐
+│ /etc/resolv.conf │ ← Какой DNS-сервер спрашивать
+│ nameserver 8.8.8.8│
+└───────┬─────────┘
+        │
+        ▼
+┌─────────────────┐
+│ DNS-сервер       │ ← Отвечает: 142.250.74.46
+│ (8.8.8.8)       │
+└─────────────────┘</pre>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Команды для работы с DNS</h3>
+                    <div class="code-block">
+                        <code>dig google.com                  # полный DNS-запрос
+dig google.com +short           # только IP-адрес
+dig MX google.com               # почтовые записи
+dig @8.8.8.8 google.com         # запрос к конкретному DNS-серверу
+nslookup google.com             # простая альтернатива dig
+host google.com                 # ещё проще
+
+cat /etc/resolv.conf            # какой DNS-сервер настроен
+cat /etc/hosts                  # локальная таблица имён</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 /etc/hosts — быстрый способ:</strong> Можно вручную привязать имя к IP:
+                        <br><code>192.168.1.100  myserver.local</code>
+                        <br>Полезно для локальной разработки и тестирования.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PORTS -->
+            <section id="ports">
+                <h2 class="section-title">📖 Порты и сокеты</h2>
+                <div class="theory-block">
+                    <h3>Что такое порт?</h3>
+                    <p>IP-адрес определяет <strong>компьютер</strong>, порт — <strong>программу</strong> на нём. На одном сервере работают десятки сервисов, и каждый слушает свой порт.</p>
+
+                    <pre>
+Сервер 192.168.1.10
+├── :22   → SSH (sshd)
+├── :80   → HTTP (nginx)
+├── :443  → HTTPS (nginx)
+├── :3306 → MySQL
+└── :5432 → PostgreSQL</pre>
+
+                    <div class="code-block">
+                        <code>ss -tulpn                      # все слушающие порты и процессы
+# Расшифровка флагов:
+# t = TCP, u = UDP, l = listening, p = process, n = номера (не имена)
+
+ss -tulpn | grep :80           # кто слушает порт 80?
+ss -tnp                        # все TCP-соединения (установленные)
+ss -s                          # сводка по соединениям</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Стандартные порты:</strong>
+                        <ul>
+                            <li><code>22</code> — SSH</li>
+                            <li><code>80</code> — HTTP</li>
+                            <li><code>443</code> — HTTPS</li>
+                            <li><code>3306</code> — MySQL</li>
+                            <li><code>5432</code> — PostgreSQL</li>
+                            <li><code>6379</code> — Redis</li>
+                            <li><code>8080</code> — альтернативный HTTP</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CURL -->
+            <section id="curl">
+                <h2 class="section-title">🛠️ cURL: универсальный сетевой инструмент</h2>
+                <div class="theory-block">
+                    <h3>Что умеет cURL?</h3>
+                    <p><code>curl</code> отправляет HTTP-запросы, скачивает файлы, проверяет заголовки. Незаменим для отладки API и веб-серверов.</p>
+                    <div class="code-block">
+                        <code>curl http://example.com              # получить страницу
+curl -I http://example.com           # только заголовки (какой статус? 200? 404?)
+curl -O https://example.com/file.zip # скачать файл
+curl -s https://api.github.com       # тихий режим (без прогресс-бара)
+curl -X POST -d '{"key":"val"}' \
+     -H "Content-Type: application/json" \
+     http://localhost:8080/api        # отправить POST с JSON
+curl -o /dev/null -s -w "%{http_code}" http://localhost  # только HTTP-код
+curl -k https://localhost             # игнорировать самоподписанный SSL-сертификат</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Для скриптов:</strong> <code>curl -o /dev/null -s -w "%{http_code}"</code> вернёт только HTTP-код (200, 404, 500). Идеально для мониторинга.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SSH TUNNELS -->
+            <section id="ssh-tunnels">
+                <h2 class="section-title">🔐 SSH-туннели</h2>
+                <div class="theory-block">
+                    <h3>Зачем туннели?</h3>
+                    <p>SSH-туннель — это зашифрованный канал через SSH-соединение. Позволяет безопасно обращаться к сервисам, которые не должны быть доступны из интернета.</p>
+
+                    <pre>
+ВАША МАШИНА                    СЕРВЕР
+┌───────────┐    SSH Tunnel    ┌──────────────┐
+│ localhost  │═════════════════│ 127.0.0.1     │
+│ :8080      │    (encrypted)  │ :3306 (MySQL) │
+└───────────┘                  └──────────────┘
+
+Теперь MySQL доступна на вашем localhost:8080</pre>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Local Port Forwarding (самый частый)</h3>
+                    <p>Пробрасывает локальный порт на удалённый сервер:</p>
+                    <div class="code-block">
+                        <code>ssh -L 8080:localhost:80 user@server
+# Теперь localhost:8080 на вашей машине → порт 80 на сервере
+
+ssh -L 3307:127.0.0.1:3306 user@db-server
+# Теперь localhost:3307 → MySQL на сервере
+
+# Флаги:
+ssh -L 8080:localhost:80 -N -f user@server
+# -N = не запускать оболочку (только туннель)
+# -f = работать в фоне</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Remote Port Forwarding</h3>
+                    <p>Обратно: делает локальный сервис доступным на удалённом сервере:</p>
+                    <div class="code-block">
+                        <code>ssh -R 9090:localhost:3000 user@server
+# Теперь на server:9090 доступен ваш localhost:3000
+# Полезно для демонстрации локального сайта клиенту</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Dynamic Forwarding (SOCKS-прокси)</h3>
+                    <div class="code-block">
+                        <code>ssh -D 1080 user@server
+# Создаёт SOCKS-прокси на localhost:1080
+# Настройте браузер на использование SOCKS-прокси 127.0.0.1:1080
+# Весь трафик браузера пойдёт через сервер</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Реальный кейс:</strong> Админ хочет подключиться к MySQL на production-сервере, но порт 3306 закрыт фаерволом. Решение: <code>ssh -L 3307:127.0.0.1:3306 user@prod-server</code>, затем подключиться через <code>mysql -h 127.0.0.1 -P 3307</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- FIREWALL -->
+            <section id="firewall">
+                <h2 class="section-title">🛡️ Фаервол и tcpdump</h2>
+                <div class="theory-block">
+                    <h3>iptables (кратко)</h3>
+                    <div class="code-block">
+                        <code>sudo iptables -L -n -v              # список всех правил
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT   # разрешить HTTP
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT  # разрешить HTTPS
+sudo iptables -D INPUT -p tcp --dport 80 -j ACCEPT   # удалить правило
+
+# Для простого управления используйте UFW:
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw status verbose</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>tcpdump: перехват пакетов</h3>
+                    <p>tcpdump позволяет видеть весь сетевой трафик в реальном времени. Мощный инструмент для глубокой диагностики.</p>
+                    <div class="code-block">
+                        <code>sudo tcpdump -i any port 80         # весь HTTP-трафик
+sudo tcpdump -i eth0 host 8.8.8.8   # трафик с конкретным хостом
+sudo tcpdump -i any -w capture.pcap # записать в файл (открыть в Wireshark)
+sudo tcpdump -i any -c 100          # первые 100 пакетов
+sudo tcpdump -i any port 22 -n      # SSH-трафик (без резолвинга имён)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Совет:</strong> Для визуального анализа сохраните в <code>.pcap</code> и откройте в <strong>Wireshark</strong> (GUI-программа, есть на Windows/Mac/Linux).
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: «Сайт не открывается» — диагностика за 5 шагов</h3>
+                    <div class="code-block">
+                        <code># Шаг 1: Есть ли интернет?
+ping -c 4 8.8.8.8
+
+# Шаг 2: Работает ли DNS?
+dig google.com +short
+
+# Шаг 3: Слушает ли веб-сервер?
+ss -tulpn | grep :80
+
+# Шаг 4: Отвечает ли веб-сервер?
+curl -I http://localhost
+
+# Шаг 5: Что в логах?
+sudo journalctl -u nginx --since "5 min ago"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Подключение к удалённой БД через SSH-туннель</h3>
+                    <div class="code-block">
+                        <code># 1. Открываем туннель (в отдельном терминале):
+ssh -L 5433:127.0.0.1:5432 -N -f user@db-server
+
+# 2. Подключаемся к БД через локальный порт:
+psql -h 127.0.0.1 -p 5433 -U postgres mydb
+
+# 3. Когда закончили — закрываем туннель:
+pkill -f "ssh -L 5433"</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: «Кто обращается к моему серверу?»</h3>
+                    <div class="code-block">
+                        <code># Посмотреть активные соединения:
+ss -tnp
+
+# Посмотреть, кто слушает:
+ss -tulpn
+
+# Подсчитать соединения по IP:
+ss -tn | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -rn | head -10
+
+# Перехватить трафик на порту 80:
+sudo tcpdump -i any port 80 -c 50</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "Network is unreachable"</strong>
+                    <ul>
+                        <li>Нет маршрута по умолчанию — проверьте: <code>ip r</code></li>
+                        <li>Интерфейс выключен: <code>sudo ip link set eth0 up</code></li>
+                        <li>Проверьте кабель / виртуальную сеть</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Could not resolve host" / DNS не работает</strong>
+                    <ul>
+                        <li>Проверьте DNS-сервер: <code>cat /etc/resolv.conf</code></li>
+                        <li>Попробуйте пинг по IP: <code>ping 8.8.8.8</code></li>
+                        <li>Если IP работает, а имя нет — проблема точно в DNS</li>
+                        <li>Попробуйте: <code>dig @8.8.8.8 google.com</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Connection refused"</strong>
+                    <ul>
+                        <li>Сервис не запущен или не слушает нужный порт</li>
+                        <li>Проверьте: <code>sudo ss -tulpn | grep :PORT</code></li>
+                        <li>Запустите сервис: <code>sudo systemctl start nginx</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Connection timed out"</strong>
+                    <ul>
+                        <li>Фаервол блокирует — проверьте: <code>sudo ufw status</code> или <code>sudo iptables -L</code></li>
+                        <li>Сервер не отвечает — проверьте: <code>ping server_ip</code></li>
+                        <li>Неправильный порт — проверьте, какой порт слушает сервис</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ SSH-туннель не работает</strong>
+                    <ul>
+                        <li>Проверьте, что SSH-соединение установлено</li>
+                        <li>Убедитесь, что целевой сервис запущен на сервере</li>
+                        <li>Попробуйте с <code>-v</code>: <code>ssh -v -L 8080:localhost:80 user@server</code></li>
+                        <li>Проверьте: <code>ss -tulpn | grep 8080</code> на локальной машине</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный алгоритм:</strong>
+                    <br>1. <code>ping 8.8.8.8</code> — есть интернет?
+                    <br>2. <code>ping ya.ru</code> — работает DNS?
+                    <br>3. <code>ss -tulpn</code> — сервис слушает?
+                    <br>4. <code>curl localhost:PORT</code> — сервис отвечает?
+                    <br>5. <code>sudo ufw status</code> — фаервол не блокирует?
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Проверь свой IP-адрес: <code>ip a</code></li>
+                        <li class="task-item">Проверь таблицу маршрутизации: <code>ip r</code></li>
+                        <li class="task-item">Пингни 4 раза 1.1.1.1: <code>ping -c 4 1.1.1.1</code></li>
+                        <li class="task-item">Проверь DNS: <code>dig google.com +short</code></li>
+                        <li class="task-item">Посмотри, какие порты слушает твой сервер: <code>ss -tulpn</code></li>
+                        <li class="task-item">Отправь GET-запрос к любому сайту через curl, посмотри заголовки: <code>curl -I https://ya.ru</code></li>
+                        <li class="task-item">Проверь маршрут до google.com: <code>traceroute google.com</code></li>
+                        <li class="task-item">Посмотри содержимое <code>/etc/resolv.conf</code> и <code>/etc/hosts</code></li>
+                        <li class="task-item">Запусти tcpdump на порт 80 и в другом терминале сделай <code>curl localhost</code></li>
+                        <li class="task-item">Добавь запись в <code>/etc/hosts</code>: <code>127.0.0.1 myapp.local</code> и проверь <code>ping myapp.local</code></li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создай SSH-туннель к своему серверу: пробрось порт 80 на локальный 8080, проверь через <code>curl localhost:8080</code></li>
+                        <li class="task-item">Напиши скрипт, который проверяет доступность 5 сайтов (через <code>curl -o /dev/null -s -w "%{http_code}"</code>) и выводит статус каждого</li>
+                        <li class="task-item">Найди топ-10 IP-адресов из access.log nginx, используя <code>ss</code> или <code>awk</code></li>
+                        <li class="task-item">Захвати 100 пакетов через tcpdump в файл, затем посмотри через <code>tcpdump -r</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>ip a</code>
+                            <p>Все IP-адреса</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ip r</code>
+                            <p>Таблица маршрутизации</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ping -c 4 host</code>
+                            <p>Проверить доступность</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>traceroute host</code>
+                            <p>Маршрут до хоста</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>dig domain +short</code>
+                            <p>DNS-запрос (только IP)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>nslookup domain</code>
+                            <p>Простой DNS-запрос</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /etc/resolv.conf</code>
+                            <p>DNS-серверы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /etc/hosts</code>
+                            <p>Локальная таблица имён</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ss -tulpn</code>
+                            <p>Все слушающие порты</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ss -tnp</code>
+                            <p>Активные TCP-соединения</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>curl -I url</code>
+                            <p>Заголовки ответа</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>curl -O url</code>
+                            <p>Скачать файл</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>curl -s -w "%{http_code}" url</code>
+                            <p>Только HTTP-код</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ssh -L 8080:localhost:80 user@srv</code>
+                            <p>Local port forwarding</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ssh -R 9090:localhost:3000 user@srv</code>
+                            <p>Remote port forwarding</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ssh -D 1080 user@srv</code>
+                            <p>SOCKS-прокси</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo iptables -L -n -v</code>
+                            <p>Правила фаервола</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo ufw status verbose</code>
+                            <p>Статус UFW</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo tcpdump -i any port 80</code>
+                            <p>Перехват HTTP-трафика</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo tcpdump -w file.pcap</code>
+                            <p>Запись в файл (для Wireshark)</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module8.html" class="nav-btn">← Модуль 8: Логи</a>
+                <a href="module10.html" class="nav-btn">Модуль 10: Bash →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

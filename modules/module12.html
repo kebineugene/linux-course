@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 12: Хранение данных - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>💾 Модуль 12</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#filesystems" class="nav-item">Файловые системы</a></li>
+                <li><a href="#partitioning" class="nav-item">Разметка и форматирование</a></li>
+                <li><a href="#mounting" class="nav-item">Монтирование и fstab</a></li>
+                <li><a href="#lvm" class="nav-item">LVM (Логические тома)</a></li>
+                <li><a href="#smart" class="nav-item">Мониторинг дисков (SMART)</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 12: Хранение данных</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🗄️ Данные — это всё</h2>
+                <div class="theory-block">
+                    <h3>Зачем админу управление хранилищем?</h3>
+                    <p>Сервер без данных бесполезен. Администратор должен уметь добавлять диски, расширять разделы без простоя, следить за здоровьем железа и восстанавливать данные после сбоев.</p>
+                    <ul>
+                        <li><strong> Управление дисками</strong> — разметка, форматирование, монтирование</li>
+                        <li><strong>🧩 LVM</strong> — гибкое управление томами (расширение на лету)</li>
+                        <li><strong>🏥 Здоровье дисков</strong> — предсказание отказов через SMART</li>
+                        <li><strong>🛡️ Надёжность</strong> — правильное монтирование, inodes, fstab</li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Аналогия:</strong> Жёсткий диск — это большой пустой склад. Разметка (partitioning) — это деление склада на комнаты. Файловая система (formatting) — это стеллажи и учётная книга. Монтирование — это открытие дверей в эти комнаты.
+                </div>
+            </section>
+
+            <!-- FILESYSTEMS -->
+            <section id="filesystems">
+                <h2 class="section-title">📁 Файловые системы</h2>
+                <div class="theory-block">
+                    <h3>Какую ФС выбрать?</h3>
+                    <p>Файловая система определяет, как данные хранятся на диске. В Linux есть несколько стандартов:</p>
+                    
+                    <pre>
+┌──────────┬──────────────────────────────────────────────┐
+│ ext4     │ Стандарт для Linux. Надёжная, быстрая,       │
+│          │ журналируемая. Идеальна для системных дисков.│
+├────────────────────────────────────────────────────────┤
+│ xfs      │ Отлична для больших файлов и высокой         │
+│          │ параллельной нагрузки. Стандарт для RHEL.    │
+├──────────┼──────────────────────────────────────────────┤
+│ btrfs    │ Современная: снапшоты, сжатие, рейды.        │
+│          │ Сложнее, но мощнее.                           │
+└──────────┴──────────────────────────────────────────────┘</pre>
+
+                    <div class="info-block">
+                        <strong>🧠 Правило:</strong> Если не знаешь, что выбрать — бери <code>ext4</code>. Для баз данных с огромными файлами — <code>xfs</code>. Для домашних серверов с бэкапами — <code>btrfs</code>.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PARTITIONING -->
+            <section id="partitioning">
+                <h2 class="section-title">✂️ Разметка и форматирование</h2>
+                <div class="theory-block">
+                    <h3>Просмотр дисков</h3>
+                    <div class="code-block">
+                        <code>lsblk                           # дерево дисков и разделов
+lsblk -f                        # с информацией о файловых системах
+sudo fdisk -l                   # детальная информация о разделах
+sudo blkid                      # UUID и типы всех разделов</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Создание раздела и форматирование</h3>
+                    <div class="code-block">
+                        <code># 1. Разметка диска (интерактивно)
+sudo fdisk /dev/sdb
+# Внутри fdisk: n (новый раздел), p (primary), Enter (по умолчанию), w (записать)
+
+# 2. Форматирование в ext4
+sudo mkfs.ext4 /dev/sdb1
+
+# 3. Форматирование в xfs
+sudo mkfs.xfs /dev/sdb1</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Опасно:</strong> Команда <code>mkfs</code> <strong>уничтожает все данные</strong> на разделе. Всегда проверяй, тот ли диск ты выбрал (<code>lsblk</code>).
+                    </div>
+                </div>
+            </section>
+
+            <!-- MOUNTING -->
+            <section id="mounting">
+                <h2 class="section-title">🔗 Монтирование и fstab</h2>
+                <div class="theory-block">
+                    <h3>Ручное монтирование</h3>
+                    <p>Чтобы использовать раздел, его нужно «примонтировать» к дереву каталогов.</p>
+                    <div class="code-block">
+                        <code># Создать точку монтирования
+sudo mkdir -p /mnt/data
+
+# Примонтировать раздел
+sudo mount /dev/sdb1 /mnt/data
+
+# Проверить, что смонтировано
+df -h | grep sdb1
+
+# Размонтировать (когда никто не использует файлы)
+sudo umount /mnt/data</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Автоматическое монтирование: /etc/fstab</h3>
+                    <p>Чтобы диск монтировался при загрузке, добавь запись в <code>/etc/fstab</code>. Используй <strong>UUID</strong>, а не <code>/dev/sdb1</code> (имя диска может измениться после перезагрузки)!</p>
+                    <div class="code-block">
+                        <code># 1. Узнать UUID раздела
+sudo blkid /dev/sdb1
+# Вывод: UUID="12345678-1234-1234-1234-123456789abc"
+
+# 2. Открыть fstab
+sudo nano /etc/fstab
+
+# 3. Добавить строку:
+UUID=12345678-1234-1234-1234-123456789abc  /mnt/data  ext4  defaults  0  2</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong> Формат fstab:</strong> <code>UUID  точка_монтирования  тип_ФС  опции  dump  pass</code>
+                        <ul>
+                            <li><code>defaults</code> — стандартные опции (rw, suid, dev, exec, auto, nouser, async)</li>
+                            <li><code>0</code> — не делать бэкап через dump</li>
+                            <li><code>2</code> — проверять ФС при загрузке (0 для swap, 1 для root)</li>
+                        </ul>
+                    </div>
+                    <div class="warning-block">
+                        🚨 <strong>КРИТИЧНО:</strong> Ошибка в <code>/etc/fstab</code> может привести к тому, что система <strong>не загрузится</strong> (попадёт в emergency mode). После редактирования всегда проверяй: <code>sudo mount -a</code>. Если ошибок нет — всё хорошо.
+                    </div>
+                </div>
+            </section>
+
+            <!-- LVM -->
+            <section id="lvm">
+                <h2 class="section-title">🧩 LVM: Логический менеджер томов</h2>
+                <div class="theory-block">
+                    <h3>Зачем нужен LVM?</h3>
+                    <p>Обычные разделы фиксированы. LVM позволяет создавать «резиновые» тома, которые можно расширять на лету, добавлять новые диски в пул и делать снапшоты.</p>
+                    <pre>
+Физические диски (PV)      Группа томов (VG)      Логические тома (LV)
+┌──────────┐               ┌──────────────────┐   ┌──────────────┐
+│ /dev/sda │──┐            │                  │──▶│ /dev/vg0/lv1 │ (root)
+──────────┘  │            │     vg0          │   └──────────────┘
+┌──────────┐  │            │  (20 GB pool)    │   ┌──────────────┐
+│ /dev/sdb │──            │                  │──▶│ /dev/vg0/lv2 │ (data)
+──────────┘               └──────────────────   └──────────────┘</pre>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Создание LVM с нуля</h3>
+                    <div class="code-block">
+                        <code># 1. Создать физический том (Physical Volume)
+sudo pvcreate /dev/sdb
+
+# 2. Создать группу томов (Volume Group)
+sudo vgcreate vg_data /dev/sdb
+
+# 3. Создать логический том (Logical Volume) размером 10G
+sudo lvcreate -L 10G -n lv_data vg_data
+
+# 4. Отформатировать и смонтировать
+sudo mkfs.ext4 /dev/vg_data/lv_data
+sudo mkdir -p /mnt/data
+sudo mount /dev/vg_data/lv_data /mnt/data</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Расширение тома на лету (без простоя!)</h3>
+                    <div class="code-block">
+                        <code># 1. Добавить новый диск в группу томов
+sudo pvcreate /dev/sdc
+sudo vgextend vg_data /dev/sdc
+
+# 2. Расширить логический том на все свободное место
+sudo lvextend -l +100%FREE /dev/vg_data/lv_data
+
+# 3. Расширить файловую систему (онлайн!)
+# Для ext4:
+sudo resize2fs /dev/vg_data/lv_data
+# Для xfs:
+sudo xfs_growfs /mnt/data</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Магия LVM:</strong> Пользователи и сервисы даже не заметят, что диск расширился. Никаких перезагрузок!
+                    </div>
+                </div>
+            </section>
+
+            <!-- SMART -->
+            <section id="smart">
+                <h2 class="section-title">🏥 Мониторинг здоровья дисков (SMART)</h2>
+                <div class="theory-block">
+                    <h3>S.M.A.R.T. — система самодиагностики</h3>
+                    <p>Современные диски имеют встроенную систему мониторинга. Она может предупредить об отказе <strong>до того</strong>, как диск умрёт.</p>
+                    <div class="code-block">
+                        <code># Установить утилиты
+sudo apt install -y smartmontools
+
+# Посмотреть полное состояние диска
+sudo smartctl -a /dev/sda
+
+# Краткий тест здоровья
+sudo smartctl -H /dev/sda
+
+# Запустить короткий тест (не нагружает диск)
+sudo smartctl -t short /dev/sda
+
+# Посмотреть результаты тестов
+sudo smartctl -l selftest /dev/sda</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Критичные атрибуты:</strong> В выводе <code>smartctl -a</code> ищи строки <code>Reallocated_Sector_Ct</code>, <code>Current_Pending_Sector</code>, <code>UDMA_CRC_Error_Count</code>. Если их значение (RAW_VALUE) > 0 — диск начинает сыпаться, срочно меняй!
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title"> Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: Добавление нового диска на production-сервер</h3>
+                    <div class="code-block">
+                        <code># 1. Находим новый диск
+lsblk
+# Видим sdb без разделов
+
+# 2. Создаём раздел на весь диск
+sudo fdisk /dev/sdb
+# n -> p -> Enter -> Enter -> w
+
+# 3. Форматируем в ext4
+sudo mkfs.ext4 /dev/sdb1
+
+# 4. Узнаём UUID
+sudo blkid /dev/sdb1
+
+# 5. Создаём папку и монтируем
+sudo mkdir -p /mnt/backups
+sudo mount /dev/sdb1 /mnt/backups
+
+# 6. Добавляем в fstab (ОБЯЗАТЕЛЬНО через UUID!)
+echo "UUID=ваш-uuid  /mnt/backups  ext4  defaults  0  2" | sudo tee -a /etc/fstab
+
+# 7. Проверяем fstab
+sudo mount -a
+df -h | grep backups</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: Расширение LVM тома, когда кончилось место</h3>
+                    <div class="code-block">
+                        <code># 1. Проблема: df -h показывает 100% на /dev/mapper/vg0-lv_data
+# 2. Добавили новый диск (sdc) в сервер (горячая замена или через панель хостинга)
+
+# 3. Расширяем LVM
+sudo pvcreate /dev/sdc
+sudo vgextend vg0 /dev/sdc
+sudo lvextend -l +100%FREE /dev/mapper/vg0-lv_data
+sudo resize2fs /dev/mapper/vg0-lv_data
+
+# 4. Проверяем
+df -h | grep lv_data
+# Готово! Место добавлено без перезагрузки.</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong> Система не грузится, попадает в "emergency mode"</strong>
+                    <ul>
+                        <li>Причина: ошибка в <code>/etc/fstab</code> (неправильный UUID, нет диска)</li>
+                        <li>Введи пароль root</li>
+                        <li>Перемонтируй root в запись: <code>mount -o remount,rw /</code></li>
+                        <li>Исправь fstab: <code>nano /etc/fstab</code> (закомментируй проблемную строку через <code>#</code>)</li>
+                        <li>Перезагрузись: <code>reboot</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Read-only filesystem" — нельзя создать файл</strong>
+                    <ul>
+                        <li>ФС перемонтировалась в read-only из-за ошибки диска</li>
+                        <li>Проверь ошибки: <code>dmesg -T | grep -i ext4</code> или <code>smartctl -a /dev/sda</code></li>
+                        <li>Временное решение: <code>sudo mount -o remount,rw /mnt/data</code></li>
+                        <li>Если диск сыпется — срочно копируй данные и меняй диск!</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong> "No space left on device", но df -h показывает место</strong>
+                    <ul>
+                        <li>Закончились <strong>inodes</strong> (слишком много мелких файлов)</li>
+                        <li>Проверь: <code>df -i</code></li>
+                        <li>Найди папку с кучей файлов: <code>find / -xdev -printf '%h\n' | sort | uniq -c | sort -rn | head</code></li>
+                        <li>Часто виноваты: сессии PHP, кэш, очереди почты</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Device is busy" при umount</strong>
+                    <ul>
+                        <li>Какой-то процесс использует файлы на диске</li>
+                        <li>Найди кто: <code>lsof +D /mnt/data</code> или <code>fuser -m /mnt/data</code></li>
+                        <li>Останови процесс или смени директорию (<code>cd ~</code>) и повтори <code>umount</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Перед любой работой с дисками (особенно <code>fdisk</code>, <code>mkfs</code>) трижды проверь имя диска через <code>lsblk</code>. Ошибка здесь стоит потерянных данных.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Просмотри все диски и разделы: <code>lsblk</code> и <code>lsblk -f</code></li>
+                        <li class="task-item">Проверь использование inodes на всех разделах: <code>df -i</code></li>
+                        <li class="task-item">Узнай UUID всех разделов: <code>sudo blkid</code></li>
+                        <li class="task-item">Создай файл размером 100МБ: <code>dd if=/dev/zero of=/tmp/testfile bs=1M count=100</code> и проверь его размер через <code>ls -lh</code></li>
+                        <li class="task-item">Посмотри SMART-статус основного диска: <code>sudo smartctl -H /dev/sda</code> (если smartctl установлен)</li>
+                        <li class="task-item">Найди, какие процессы держат открытыми файлы в /var/log: <code>sudo lsof +D /var/log</code></li>
+                        <li class="task-item">Проверь fstab на ошибки (сухой прогон): <code>sudo mount -a</code></li>
+                        <li class="task-item">Посмотри историю монтирования: <code>cat /etc/mtab</code> или <code>findmnt</code></li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создайте LVM том из двух виртуальных дисков (если есть возможность добавить диски в ВМ), расширьте его на лету и проверьте через <code>df -h</code></li>
+                        <li class="task-item">Настройте автоматический SMART-тест через cron: короткий тест каждый день в 2:00, длинный — каждое воскресенье в 3:00</li>
+                        <li class="task-item">Сымитируйте ошибку fstab (добавьте неверный UUID), перезагрузите ВМ, войдите в emergency mode и исправьте ошибку через <code>mount -o remount,rw /</code></li>
+                        <li class="task-item">Напишите скрипт, который проверяет заполненность всех разделов и отправляет алерт в Telegram, если какой-то раздел заполнен > 85%</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title"> Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>lsblk</code>
+                            <p>Дерево дисков и разделов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>lsblk -f</code>
+                            <p>С информацией о ФС</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>df -h</code>
+                            <p>Место на дисках</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>df -i</code>
+                            <p>Использование inodes</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>du -sh /path</code>
+                            <p>Размер папки</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo blkid</code>
+                            <p>UUID всех разделов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo fdisk -l</code>
+                            <p>Детали разделов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo fdisk /dev/sdX</code>
+                            <p>Разметить диск</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo mkfs.ext4 /dev/sdX1</code>
+                            <p>Форматировать в ext4</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo mount /dev/sdX1 /mnt</code>
+                            <p>Примонтировать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo umount /mnt</code>
+                            <p>Размонтировать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat /etc/fstab</code>
+                            <p>Таблица авто-монтирования</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo mount -a</code>
+                            <p>Примонтировать всё из fstab</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>mount -o remount,rw /</code>
+                            <p>Перемонтировать root в запись</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>pvcreate /dev/sdX</code>
+                            <p>Создать физ. том LVM</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>vgcreate vg_name /dev/sdX</code>
+                            <p>Создать группу томов</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>lvcreate -L 10G -n lv_name vg</code>
+                            <p>Создать лог. том</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>lvextend -l +100%FREE /dev/...</code>
+                            <p>Расширить лог. том</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>resize2fs /dev/...</code>
+                            <p>Расширить ФС ext4</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>sudo smartctl -a /dev/sda</code>
+                            <p>Полный SMART-отчёт</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>lsof +D /mnt</code>
+                            <p>Кто использует файлы на диске</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="module11.html" class="nav-btn">← Модуль 11: Мониторинг</a>
+                <a href="module13.html" class="nav-btn">Модуль 13: Docker →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модуль 1: Файлы и навигация - Linux Course</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>📁 Модуль 1</h2>
+            <ul class="nav-list">
+                <li><a href="#intro" class="nav-item">Введение</a></li>
+                <li><a href="#wsl" class="nav-item">Настройка WSL</a></li>
+                <li><a href="#theory1" class="nav-item">Теория: ФС</a></li>
+                <li><a href="#practice1" class="nav-item">Практика: Навигация</a></li>
+                <li><a href="#theory2" class="nav-item">Теория: Файлы</a></li>
+                <li><a href="#practice2" class="nav-item">Практика: Файлы</a></li>
+                <li><a href="#redirects" class="nav-item">Перенаправления и пайпы</a></li>
+                <li><a href="#archives" class="nav-item">Архивация</a></li>
+                <li><a href="#nano" class="nav-item">Редактор nano</a></li>
+                <li><a href="#vim" class="nav-item">Мини-курс vim</a></li>
+                <li><a href="#theory3" class="nav-item">Теория: Поиск</a></li>
+                <li><a href="#practice3" class="nav-item">Практика: Поиск</a></li>
+                <li><a href="#man" class="nav-item">Справка: man</a></li>
+                <li><a href="#real-scenarios" class="nav-item">Реальные сценарии</a></li>
+                <li><a href="#troubleshooting" class="nav-item">Troubleshooting</a></li>
+                <li><a href="#tasks" class="nav-item">Задания</a></li>
+                <li><a href="#cheatsheet" class="nav-item">Шпаргалка</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>Модуль 1: Файлы и навигация</h1>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% завершено</span>
+                </div>
+                <button class="theme-toggle" id="themeToggleBtn">☀️ Светлая тема</button>
+            </div>
+
+            <!-- INTRO -->
+            <section id="intro">
+                <h2 class="section-title">🎯 Добро пожаловать!</h2>
+                <div class="theory-block">
+                    <h3>Почему терминал?</h3>
+                    <p>Представь, что ты хирург:</p>
+                    <ul>
+                        <li><strong>GUI</strong> — операция через видеоэкран (удобно, но ограничено)</li>
+                        <li><strong>Терминал</strong> — работа напрямую скальпелем (быстро, точно, полный контроль)</li>
+                    </ul>
+                    <p><strong>Главное правило:</strong> В Linux всё есть файл. Научишься работать с файлами — научишься управлять системой.</p>
+                </div>
+
+                <div class="info-block">
+                    <strong>💡 Зачем это нужно админу?</strong>
+                    <ul>
+                        <li>90% серверов Linux управляются только через терминал</li>
+                        <li>GUI на сервере часто не установлен — экономит ресурсы</li>
+                        <li>Терминал позволяет автоматизировать любые задачи через скрипты</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- WSL -->
+            <section id="wsl">
+                <h2 class="section-title">💻 Быстрый старт: WSL для Windows</h2>
+                <div class="theory-block">
+                    <h3>Установка Linux на Windows</h3>
+                    <p>Откройте PowerShell от имени администратора и выполните:</p>
+                    <div class="code-block">
+                        <code>wsl --install -d Ubuntu</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <p>После перезагрузки откройте Ubuntu из меню Пуск и создайте пользователя. Это ваш Linux-терминал для практики.</p>
+                    <p><strong>Mac/Linux:</strong> просто откройте встроенный терминал (Terminal.app или Konsole/GNOME Terminal).</p>
+                    <div class="warning-block">
+                        ⚠️ <strong>Важно:</strong> Если WSL не устанавливается, включите виртуализацию в BIOS (Intel VT-x / AMD-V). Без неё Linux не запустится.
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY 1 -->
+            <section id="theory1">
+                <h2 class="section-title"> Теория: Файловая система</h2>
+                <div class="theory-block">
+                    <h3>Дерево каталогов</h3>
+                    <p>В Linux есть один корень <code>/</code>. Всё начинается с него:</p>
+                    <pre>
+/
+ ├── bin/          # Основные команды (ls, cp, bash)
+ ├── boot/         # Файлы загрузчика
+ ├── dev/          # Устройства (диски, терминалы)
+ ├── etc/          # Конфигурационные файлы системы
+ ├── home/         # Домашние папки пользователей
+ │   └── user/     # Ваша папка (~)
+ ├── lib/          # Библиотеки программ
+ ├── media/        # Съёмные носители (флешки)
+ ├── opt/          # Дополнительное ПО
+ ├── proc/         # Информация о процессах (виртуальная ФС)
+ ├── root/         # Домашняя папка root
+ ├── run/          # Временные данные запущенных сервисов
+ ├── sbin/         # Системные команды (требуют root)
+ ├── tmp/          # Временные файлы (очищается при перезагрузке)
+ ├── usr/          # Пользовательские программы и данные
+ └── var/          # Логи, кэш, базы данных</pre>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Абсолютные и относительные пути</h3>
+                    <p><strong>Абсолютный путь</strong> — начинается с корня <code>/</code>:</p>
+                    <div class="code-block">
+                        <code>/home/user/documents/file.txt</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <p><strong>Относительный путь</strong> — от текущей папки:</p>
+                    <div class="code-block">
+                        <code>documents/file.txt</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>⚡ Правило:</strong> Если путь начинается с <code>/</code> — это от корня. Если нет — от текущей папки.
+                        <br><br>
+                        <code>cd documents</code> → <code>/home/user/documents</code> (если вы в <code>/home/user</code>)
+                        <br>
+                        <code>cd /documents</code> → <code>/documents</code> (в корне, которого скорее всего нет!)
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 1 -->
+            <section id="practice1">
+                <h2 class="section-title">🔬 Практика: Навигация</h2>
+                <div class="theory-block">
+                    <h3>Команда <code>pwd</code> — Где я?</h3>
+                    <div class="code-block">
+                        <code>pwd</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <p><strong>Зачем:</strong> Чтобы понять, в какой папке вы находитесь, прежде чем что-то удалять или создавать.</p>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Команда <code>ls</code> — Что вокруг?</h3>
+                    <div class="code-block">
+                        <code>ls              # просто список
+ls -la          # ВСЁ: скрытые файлы, права, размеры, дата
+ls -lah         # Размеры в удобном формате (КБ/МБ/ГБ)
+ls -l *.txt     # Только .txt файлы</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Подсказка:</strong> Флаги можно комбинировать: <code>-l</code> (подробно) + <code>-a</code> (все, включая скрытые) + <code>-h</code> (human-readable).
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Команда <code>cd</code> — Куда пойти?</h3>
+                    <div class="code-block">
+                        <code>cd /etc         # перейти в /etc
+cd ..           # шаг назад (в родительскую папку)
+cd ~            # домой (в /home/user)
+cd              # тоже домой
+cd -            # вернуться в предыдущую папку</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <p>Выполните команды по очереди и наблюдайте за результатом:</p>
+                    <div class="code-block">
+                        <code>pwd                          # где я?
+ls -la                       # что в папке?
+cd ~                         # домой
+mkdir practice               # создать папку
+cd practice                  # зайти в неё
+pwd                          # проверить, где я</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY 2 -->
+            <section id="theory2">
+                <h2 class="section-title"> Теория: Работа с файлами</h2>
+                <div class="theory-block">
+                    <h3>Создание файлов</h3>
+                    <div class="code-block">
+                        <code>touch file.txt                    # пустой файл
+echo "Привет" > file.txt          # создать с текстом
+echo "Ещё" >> file.txt            # ДОБАВИТЬ в конец</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ <strong>Критично:</strong> <code>&gt;</code> перезаписывает файл целиком! <code>&gt;&gt;</code> дописывает в конец.
+                        <br><br>
+                        Если случайно напишете <code>echo "new" &gt; important.txt</code> — старый контент исчезнет навсегда!
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Копирование, перемещение, удаление</h3>
+                    <div class="code-block">
+                        <code>cp file1.txt file1_copy.txt     # копировать файл
+cp -r dir1/ dir2/               # копировать папку (рекурсивно)
+mv file.txt newname.txt         # переименовать / переместить
+rm file.txt                     # удалить файл
+rm -r dir/                      # удалить папку со всем содержимым</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        🚨 <strong>В Linux НЕТ корзины!</strong> Команда <code>rm</code> удаляет файлы навсегда, без возможности восстановления.
+                        <br><br>
+                        <strong>Совет:</strong> Сначала используйте <code>mv file.txt ~/.trash/</code> вместо <code>rm</code>, пока не набьёте руку.
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Просмотр содержимого</h3>
+                    <div class="code-block">
+                        <code>cat file.txt          # весь файл сразу
+less file.txt         # постранично (q — выйти)
+head -10 file.txt     # первые 10 строк
+tail -10 file.txt     # последние 10 строк
+tail -f /var/log/syslog  # следить за логом в реальном времени</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>Зачем tail -f?</strong> Админы используют эту команду, чтобы видеть логи сервиса в реальном времени, пока он работает.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 2 -->
+            <section id="practice2">
+                <h2 class="section-title">🔬 Практика: Файлы</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>mkdir ~/practice
+cd ~/practice
+echo "Учу Linux" > notes.txt
+echo "Это круто" >> notes.txt
+cat notes.txt
+cp notes.txt notes_backup.txt
+mv notes_backup.txt notes_old.txt
+rm notes_old.txt
+ls -la</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REDIRECTS -->
+            <section id="redirects">
+                <h2 class="section-title">🔄 Перенаправления и пайпы</h2>
+                <div class="theory-block">
+                    <h3>Перенаправление вывода</h3>
+                    <div class="code-block">
+                        <code>echo "Hello" > file.txt          # записать (перезаписать!)
+echo "World" >> file.txt         # дописать в конец
+ls /fake 2> error.log            # ошибки в файл
+ls /fake 2>&1                    # ошибки туда же, куда обычный вывод</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Пайпы (конвейер) <code>|</code></h3>
+                    <p>Символ <code>|</code> передаёт вывод одной команды на вход другой:</p>
+                    <div class="code-block">
+                        <code>ls -la | grep ".txt"            # найти файлы .txt
+cat /etc/passwd | wc -l          # посчитать строки
+ps aux | grep nginx | wc -l      # сколько процессов nginx работает</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Зачем?</strong> Пайпы — это суперсила Linux. Можно комбинировать простые команды в мощные конвейеры обработки данных.
+                    </div>
+                </div>
+            </section>
+
+            <!-- ARCHIVES -->
+            <section id="archives">
+                <h2 class="section-title">📦 Архивация и сжатие</h2>
+                <div class="theory-block">
+                    <h3>tar — упаковка файлов</h3>
+                    <p>В Linux архивирование и сжатие — это две операции. <code>tar</code> объединяет файлы, <code>gzip</code> сжимает.</p>
+                    <div class="code-block">
+                        <code># Создать архив и сжать:
+tar -czf archive.tar.gz папка/
+# Распаковать:
+tar -xzf archive.tar.gz
+# Создать несжатый tar:
+tar -cf archive.tar папка/
+# Просмотреть содержимое без распаковки:
+tar -tzf archive.tar.gz</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🧠 Запомни мнемонику:</strong> <code>c</code> = create, <code>x</code> = extract, <code>t</code> = list, <code>z</code> = gzip, <code>f</code> = file.
+                    </div>
+                </div>
+
+                <div class="practice-block">
+                    <h3>Практика</h3>
+                    <div class="code-block">
+                        <code>cd ~
+tar -czf practice_backup.tar.gz practice/
+ls -lh practice_backup.tar.gz
+mkdir /tmp/restore
+tar -xzf practice_backup.tar.gz -C /tmp/restore/
+ls /tmp/restore/</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NANO -->
+            <section id="nano">
+                <h2 class="section-title">✏️ Текстовый редактор nano</h2>
+                <div class="theory-block">
+                    <h3>Зачем нужен редактор?</h3>
+                    <p>Чтобы править конфиги и писать скрипты, нужно уметь редактировать файлы прямо в терминале. nano — самый простой редактор для начала.</p>
+                    <div class="code-block">
+                        <code>nano file.txt        # открыть (или создать)
+# Внутри nano:
+# Ctrl+O  — сохранить (WriteOut)
+# Ctrl+X  — выйти
+# Ctrl+K  — вырезать строку
+# Ctrl+U  — вставить строку
+# Ctrl+W  — поиск</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIM -->
+            <section id="vim">
+                <h2 class="section-title">🧠 Мини-курс vim (экстренный выход)</h2>
+                <div class="theory-block">
+                    <h3>Зачем?</h3>
+                    <p>На многих минимальных серверах nano отсутствует, а vim (или vi) — есть всегда. Научись трём вещам, чтобы не паниковать.</p>
+                    <div class="code-block">
+                        <code>vim file.txt
+# Нажатие i — переход в режим вставки (как в блокноте)
+# После правки:
+# Esc — выйти из режима вставки
+# :wq — сохранить и выйти
+# :q! — выйти без сохранения</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="warning-block">
+                        ⚠️ Если vim "застрял" и вы не знаете, что делать — нажмите Esc, затем наберите <code>:q!</code> и Enter. Это аварийный выход.
+                    </div>
+                </div>
+            </section>
+
+            <!-- THEORY 3 -->
+            <section id="theory3">
+                <h2 class="section-title">📖 Теория: Поиск</h2>
+                <div class="theory-block">
+                    <h3>Поиск файлов: <code>find</code></h3>
+                    <div class="code-block">
+                        <code>find /etc -name "*.conf"              # найти .conf в /etc
+find / -name "nginx.conf" 2>/dev/null  # во всей системе (ошибки скрыть)
+find / -size +100M                     # файлы больше 100 МБ
+find ~ -type f -mtime -7               # файлы, изменённые за последние 7 дней</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Поиск текста: <code>grep</code></h3>
+                    <div class="code-block">
+                        <code>grep "error" /var/log/syslog     # найти "error"
+grep -r "root" /etc/             # во всех файлах рекурсивно
+grep -i "ERROR" log.txt          # без учёта регистра
+grep -v "error" log.txt          # строки БЕЗ "error"
+grep -n "error" log.txt          # с номерами строк</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>💡 Комбинация:</strong> <code>find / -name "*.log" 2&gt;/dev/null | xargs grep "error"</code> — найти слово "error" во всех .log файлах системы.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRACTICE 3 -->
+            <section id="practice3">
+                <h2 class="section-title">🔬 Практика: Поиск</h2>
+                <div class="practice-block">
+                    <h3>Пошаговая практика</h3>
+                    <div class="code-block">
+                        <code>find ~ -name "*.txt"
+grep -r "root" /etc/ 2>/dev/null | head -5
+head -5 /etc/passwd
+tail -5 /etc/passwd
+ps aux | grep bash | grep -v grep   # найти процессы bash (исключив сам grep)</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MAN -->
+            <section id="man">
+                <h2 class="section-title">📚 Справка: man и --help</h2>
+                <div class="theory-block">
+                    <h3>Как узнать больше о любой команде?</h3>
+                    <p>В Linux встроена полная документация. Вам не нужен интернет — всё уже есть в системе.</p>
+                    <div class="code-block">
+                        <code>man ls              # полная справка по команде ls
+man find            # справка по find
+q                   # выйти из man (нажмите q)
+ls --help           # краткая справка (быстрее, чем man)
+find --help | less  # длинная справка с прокруткой
+info ls             # альтернатива man (более подробная)</code>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                    <div class="info-block">
+                        <strong>🎯 Навык админа:</strong> Умение читать <code>man</code> важнее, чем запоминать все флаги. Если вы знаете, как найти ответ — вы уже наполовину админ.
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL SCENARIOS -->
+            <section id="real-scenarios">
+                <h2 class="section-title">🎯 Реальные сценарии</h2>
+                <div class="theory-block">
+                    <h3>Сценарий 1: "Не могу найти конфиг nginx"</h3>
+                    <div class="code-block">
+                        <code># 1. Ищем файл конфига
+sudo find / -name "nginx.conf" 2>/dev/null
+
+# 2. Нашли: /etc/nginx/nginx.conf
+# 3. Смотрим содержимое
+sudo cat /etc/nginx/nginx.conf
+
+# 4. Или сразу открываем в редакторе
+sudo nano /etc/nginx/nginx.conf</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 2: "Нужно найти все логи старше 30 дней"</h3>
+                    <div class="code-block">
+                        <code># 1. Находим все .log файлы старше 30 дней
+sudo find /var/log -name "*.log" -mtime +30
+
+# 2. Смотрим размер
+sudo find /var/log -name "*.log" -mtime +30 -exec ls -lh {} \;
+
+# 3. Удаляем (осторожно!)
+sudo find /var/log -name "*.log" -mtime +30 -delete</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <div class="theory-block">
+                    <h3>Сценарий 3: "Нужно сделать бэкап папки перед изменениями"</h3>
+                    <div class="code-block">
+                        <code># 1. Создаём бэкап с датой
+tar -czf /tmp/nginx-backup-$(date +%Y%m%d).tar.gz /etc/nginx/
+
+# 2. Проверяем бэкап
+ls -lh /tmp/nginx-backup-*.tar.gz
+tar -tzf /tmp/nginx-backup-$(date +%Y%m%d).tar.gz | head -10
+
+# 3. Теперь можно смело менять конфиги
+sudo nano /etc/nginx/nginx.conf</code>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROUBLESHOOTING -->
+            <section id="troubleshooting">
+                <h2 class="section-title">🔧 Troubleshooting: Если не получилось</h2>
+                <div class="warning-block">
+                    <strong>❓ "No such file or directory"</strong>
+                    <ul>
+                        <li>Проверьте путь через <code>pwd</code> и <code>ls</code></li>
+                        <li>Опечатка в имени? Используйте <code>Tab</code> для автодополнения</li>
+                        <li>Файл в другой папке? Используйте абсолютный путь</li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Permission denied"</strong>
+                    <ul>
+                        <li>У вас нет прав на файл/папку</li>
+                        <li>Попробуйте <code>sudo</code> перед командой (если вы админ)</li>
+                        <li>Или проверьте владельца: <code>ls -la file.txt</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Command not found"</strong>
+                    <ul>
+                        <li>Опечатка в команде? Проверьте <code>man</code></li>
+                        <li>Программа не установлена? <code>sudo apt install &lt;имя&gt;</code></li>
+                        <li>Нужен полный путь? <code>/usr/bin/ls</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ "Is a directory"</strong>
+                    <ul>
+                        <li>Вы пытаетесь работать с папкой как с файлом</li>
+                        <li>Для папок нужен флаг <code>-r</code> (рекурсивно): <code>cp -r dir1/ dir2/</code></li>
+                    </ul>
+                </div>
+
+                <div class="warning-block">
+                    <strong>❓ vim "завис" и не выходит</strong>
+                    <ul>
+                        <li>Нажмите Esc (возможно, несколько раз)</li>
+                        <li>Наберите <code>:q!</code> и Enter — аварийный выход</li>
+                        <li>Если совсем никак — <code>Ctrl+C</code>, потом <code>:q!</code></li>
+                    </ul>
+                </div>
+
+                <div class="info-block">
+                    <strong>🛟 Универсальный совет:</strong> Если команда не работает — добавьте <code>2&gt;&1 | head -20</code> в конец, чтобы увидеть первые 20 строк ошибок.
+                </div>
+            </section>
+
+            <!-- TASKS -->
+            <section id="tasks">
+                <h2 class="section-title">✅ Задания</h2>
+                <div class="task-block">
+                    <h3>Базовые задания</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Выполни по памяти (без подсказок!): Создай папку <code>~/test</code> и зайди в неё</li>
+                        <li class="task-item">Создай файл <code>hello.txt</code> со строкой "Привет, мир!"</li>
+                        <li class="task-item">Добавь строку "Как дела?" в конец файла</li>
+                        <li class="task-item">Посмотри содержимое через <code>cat</code></li>
+                        <li class="task-item">Скопируй в <code>hello_backup.txt</code></li>
+                        <li class="task-item">Переименуй копию в <code>hello_old.txt</code></li>
+                        <li class="task-item">Создай папку <code>archive</code> и перемести туда <code>hello_old.txt</code></li>
+                        <li class="task-item">Отредактируй <code>hello_old.txt</code> через nano, добавь любую фразу</li>
+                        <li class="task-item">Открой файл в vim, выйди без сохранения (<code>:q!</code>)</li>
+                        <li class="task-item">Заархивируй папку <code>archive</code> в <code>archive.tar.gz</code></li>
+                        <li class="task-item">Найди все <code>.txt</code> в домашней папке: <code>find ~ -name "*.txt"</code></li>
+                        <li class="task-item">Найди "root" в <code>/etc/passwd</code> через grep</li>
+                        <li class="task-item">Посмотри справку по <code>ls</code> через <code>man ls</code>, выйди через <code>q</code></li>
+                        <li class="task-item">Удали папку <code>~/test</code> со всем содержимым</li>
+                    </ul>
+                </div>
+
+                <div class="task-block">
+                    <h3>🧩 Задачи со звёздочкой</h3>
+                    <ul class="task-list">
+                        <li class="task-item">Создайте файл с именем <code>-rf</code> (да, это возможно!) и удалите его. Подсказка: <code>rm -- -rf</code></li>
+                        <li class="task-item">Найдите все файлы больше 1МБ в <code>/var/log</code> и сохраните список в <code>big_logs.txt</code></li>
+                        <li class="task-item">Используя пайпы, посчитайте количество уникальных оболочек в <code>/etc/passwd</code></li>
+                        <li class="task-item">Создайте скрипт, который ищет все файлы, изменённые за последние 24 часа, и архивирует их в <code>/tmp/recent-backup.tar.gz</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CHEATSHEET -->
+            <section id="cheatsheet">
+                <h2 class="section-title">📋 Шпаргалка</h2>
+                <div class="cheat-sheet">
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <code>pwd</code>
+                            <p>Где я?</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>ls -la</code>
+                            <p>Всё: скрытые, права, размеры</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cd /path</code>
+                            <p>Пойти туда</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cd ..</code>
+                            <p>Шаг назад</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cd ~</code>
+                            <p>Домой</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cd -</code>
+                            <p>Вернуться назад</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>touch file</code>
+                            <p>Создать файл</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cat file</code>
+                            <p>Показать содержимое</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>echo "text" > file</code>
+                            <p>Записать (перезаписать!)</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>echo "text" >> file</code>
+                            <p>Дописать в конец</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cp a b</code>
+                            <p>Копировать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>mv a b</code>
+                            <p>Переместить/переименовать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>rm file</code>
+                            <p>Удалить файл</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>rm -r dir</code>
+                            <p>Удалить папку</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>man cmd</code>
+                            <p>Справка по команде</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>find / -name "*.txt"</code>
+                            <p>Найти файлы</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>grep "text" file</code>
+                            <p>Найти текст в файле</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>grep -r "text" /etc/</code>
+                            <p>Во всех файлах папки</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>tar -czf arc.tar.gz dir/</code>
+                            <p>Запаковать и сжать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>tar -xzf arc.tar.gz</code>
+                            <p>Распаковать</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>nano file</code>
+                            <p>Открыть в nano</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>vim file → i → Esc → :wq</code>
+                            <p>Сохранить и выйти из vim</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cmd1 | cmd2</code>
+                            <p>Передать вывод другой команде</p>
+                        </div>
+                        <div class="cheat-item">
+                            <code>cmd 2> err.log</code>
+                            <p>Ошибки в файл</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="nav-buttons">
+                <a href="../index.html" class="nav-btn">← На главную</a>
+                <a href="module2.html" class="nav-btn">Модуль 2: Права →</a>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>
