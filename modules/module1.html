@@ -45,7 +45,7 @@
 
             <!-- INTRO -->
             <section id="intro">
-                <h2 class="section-title">🎯 Добро пожаловать!</h2>
+                <h2 class="section-title"> Добро пожаловать!</h2>
                 <div class="theory-block">
                     <h3>Почему терминал?</h3>
                     <p>Представь, что ты хирург:</p>
@@ -86,7 +86,7 @@
 
             <!-- THEORY 1 -->
             <section id="theory1">
-                <h2 class="section-title"> Теория: Файловая система</h2>
+                <h2 class="section-title">📖 Теория: Файловая система</h2>
                 <div class="theory-block">
                     <h3>Дерево каталогов</h3>
                     <p>В Linux есть один корень <code>/</code>. Всё начинается с него:</p>
@@ -139,7 +139,7 @@
                     <h3>Команда <code>pwd</code> — Где я?</h3>
                     <div class="code-block">
                         <code>pwd</code>
-                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                     <p><strong>Зачем:</strong> Чтобы понять, в какой папке вы находитесь, прежде чем что-то удалять или создавать.</p>
                 </div>
@@ -151,7 +151,7 @@
 ls -la          # ВСЁ: скрытые файлы, права, размеры, дата
 ls -lah         # Размеры в удобном формате (КБ/МБ/ГБ)
 ls -l *.txt     # Только .txt файлы</code>
-                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                     <div class="info-block">
                         <strong>💡 Подсказка:</strong> Флаги можно комбинировать: <code>-l</code> (подробно) + <code>-a</code> (все, включая скрытые) + <code>-h</code> (human-readable).
@@ -183,11 +183,24 @@ pwd                          # проверить, где я</code>
                         <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                 </div>
+
+                <!-- 🎬 GIF: Навигация -->
+                <div class="demo-block">
+                    <h4>📹 Демонстрация: навигация в терминале</h4>
+                    <img src="../gifs/module1/navigation.gif" 
+                         alt="Демонстрация команд pwd, ls, cd"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">Повтори команды из видео в своём терминале!</p>
+                    <div class="demo-tip">
+                        <strong>💡 Совет:</strong> Используй <code>Tab</code> для автодополнения имён файлов и папок — это экономит время и защищает от опечаток.
+                    </div>
+                </div>
             </section>
 
             <!-- THEORY 2 -->
             <section id="theory2">
-                <h2 class="section-title"> Теория: Работа с файлами</h2>
+                <h2 class="section-title">📖 Теория: Работа с файлами</h2>
                 <div class="theory-block">
                     <h3>Создание файлов</h3>
                     <div class="code-block">
@@ -214,7 +227,7 @@ rm -r dir/                      # удалить папку со всем сод
                         <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                     <div class="warning-block">
-                        🚨 <strong>В Linux НЕТ корзины!</strong> Команда <code>rm</code> удаляет файлы навсегда, без возможности восстановления.
+                         <strong>В Linux НЕТ корзины!</strong> Команда <code>rm</code> удаляет файлы навсегда, без возможности восстановления.
                         <br><br>
                         <strong>Совет:</strong> Сначала используйте <code>mv file.txt ~/.trash/</code> вместо <code>rm</code>, пока не набьёте руку.
                     </div>
@@ -228,7 +241,7 @@ less file.txt         # постранично (q — выйти)
 head -10 file.txt     # первые 10 строк
 tail -10 file.txt     # последние 10 строк
 tail -f /var/log/syslog  # следить за логом в реальном времени</code>
-                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                     <div class="info-block">
                         <strong>Зачем tail -f?</strong> Админы используют эту команду, чтобы видеть логи сервиса в реальном времени, пока он работает.
@@ -252,6 +265,19 @@ mv notes_backup.txt notes_old.txt
 rm notes_old.txt
 ls -la</code>
                         <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                    </div>
+                </div>
+
+                <!-- 🎬 GIF: Работа с файлами -->
+                <div class="demo-block">
+                    <h4>📹 Демонстрация: создание и управление файлами</h4>
+                    <img src="../gifs/module1/files.gif" 
+                         alt="Демонстрация команд echo, cat, cp, mv, rm"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">Обрати внимание на разницу между > и >>!</p>
+                    <div class="demo-tip">
+                        <strong>️ Запомни:</strong> <code>></code> = перезаписать (осторожно!), <code>>></code> = добавить в конец (безопасно).
                     </div>
                 </div>
             </section>
@@ -281,6 +307,19 @@ ps aux | grep nginx | wc -l      # сколько процессов nginx ра�
                     </div>
                     <div class="info-block">
                         <strong>💡 Зачем?</strong> Пайпы — это суперсила Linux. Можно комбинировать простые команды в мощные конвейеры обработки данных.
+                    </div>
+                </div>
+
+                <!-- 🎬 GIF: Перенаправления и пайпы -->
+                <div class="demo-block">
+                    <h4>📹 Демонстрация: пайпы и перенаправления</h4>
+                    <img src="../gifs/module1/redirects.gif" 
+                         alt="Демонстрация перенаправлений и пайпов"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">Пайпы позволяют строить мощные конвейеры из простых команд</p>
+                    <div class="demo-tip">
+                        <strong>🧠 Мнемоника:</strong> <code>cut → sort → uniq → sort → head</code> — стандартный конвейер для подсчёта повторов.
                     </div>
                 </div>
             </section>
@@ -316,7 +355,20 @@ ls -lh practice_backup.tar.gz
 mkdir /tmp/restore
 tar -xzf practice_backup.tar.gz -C /tmp/restore/
 ls /tmp/restore/</code>
-                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                    </div>
+                </div>
+
+                <!-- 🎬 GIF: Архивация -->
+                <div class="demo-block">
+                    <h4> Демонстрация: архивация с tar</h4>
+                    <img src="../gifs/module1/tar.gif" 
+                         alt="Демонстрация архивации через tar"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">tar -czf создаёт архив, tar -tzf показывает содержимое без распаковки</p>
+                    <div class="demo-tip">
+                        <strong>💡 Совет:</strong> Добавляй дату в имя архива: <code>backup-$(date +%Y%m%d).tar.gz</code> — так легко найти нужный бэкап.
                     </div>
                 </div>
             </section>
@@ -338,6 +390,19 @@ ls /tmp/restore/</code>
                         <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
                     </div>
                 </div>
+
+                <!-- 🎬 GIF: nano -->
+                <div class="demo-block">
+                    <h4>📹 Демонстрация: редактирование в nano</h4>
+                    <img src="../gifs/module1/nano.gif" 
+                         alt="Демонстрация редактора nano"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">nano — самый простой редактор для новичков</p>
+                    <div class="demo-tip">
+                        <strong>🧠 Запомни:</strong> <code>Ctrl+O</code> = сохранить, <code>Ctrl+X</code> = выйти. Подсказки всегда внизу экрана!
+                    </div>
+                </div>
             </section>
 
             <!-- VIM -->
@@ -356,7 +421,25 @@ ls /tmp/restore/</code>
                         <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                     <div class="warning-block">
-                        ⚠️ Если vim "застрял" и вы не знаете, что делать — нажмите Esc, затем наберите <code>:q!</code> и Enter. Это аварийный выход.
+                        ️ Если vim "застрял" и вы не знаете, что делать — нажмите Esc, затем наберите <code>:q!</code> и Enter. Это аварийный выход.
+                    </div>
+                </div>
+
+                <!-- 🎬 GIF: Vim Survival -->
+                <div class="demo-block">
+                    <h4>📹 Демонстрация: как выйти из Vim</h4>
+                    <img src="../gifs/module1/vim-survival.gif" 
+                         alt="Демонстрация выхода из Vim"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">Запомни: Esc → :q! → Enter = аварийный выход без сохранения</p>
+                    <div class="demo-tip">
+                        <strong>🆘 Экстренный выход из Vim:</strong>
+                        <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Нажми <strong>Esc</strong> (несколько раз)</li>
+                            <li>Набери <strong>:q!</strong></li>
+                            <li>Нажми <strong>Enter</strong></li>
+                        </ol>
                     </div>
                 </div>
             </section>
@@ -383,7 +466,7 @@ grep -r "root" /etc/             # во всех файлах рекурсивн
 grep -i "ERROR" log.txt          # без учёта регистра
 grep -v "error" log.txt          # строки БЕЗ "error"
 grep -n "error" log.txt          # с номерами строк</code>
-                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
+                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
                     </div>
                     <div class="info-block">
                         <strong>💡 Комбинация:</strong> <code>find / -name "*.log" 2&gt;/dev/null | xargs grep "error"</code> — найти слово "error" во всех .log файлах системы.
@@ -405,6 +488,19 @@ ps aux | grep bash | grep -v grep   # найти процессы bash (искл
                         <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                 </div>
+
+                <!-- 🎬 GIF: Поиск -->
+                <div class="demo-block">
+                    <h4>📹 Демонстрация: поиск файлов и текста</h4>
+                    <img src="../gifs/module1/search.gif" 
+                         alt="Демонстрация поиска через find и grep"
+                         class="demo-gif"
+                         loading="lazy">
+                    <p class="demo-caption">find ищет файлы, grep ищет текст внутри файлов</p>
+                    <div class="demo-tip">
+                        <strong>💡 Совет:</strong> Добавляй <code>2&gt;/dev/null</code> к find, чтобы скрыть ошибки "Permission denied" при поиске по всей системе.
+                    </div>
+                </div>
             </section>
 
             <!-- MAN -->
@@ -420,7 +516,7 @@ q                   # выйти из man (нажмите q)
 ls --help           # краткая справка (быстрее, чем man)
 find --help | less  # длинная справка с прокруткой
 info ls             # альтернатива man (более подробная)</code>
-                        <button class="copy-btn" onclick="copyCode(this)"> Копировать</button>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Копировать</button>
                     </div>
                     <div class="info-block">
                         <strong>🎯 Навык админа:</strong> Умение читать <code>man</code> важнее, чем запоминать все флаги. Если вы знаете, как найти ответ — вы уже наполовину админ.
@@ -510,7 +606,7 @@ sudo nano /etc/nginx/nginx.conf</code>
                 </div>
 
                 <div class="warning-block">
-                    <strong>❓ "Is a directory"</strong>
+                    <strong> "Is a directory"</strong>
                     <ul>
                         <li>Вы пытаетесь работать с папкой как с файлом</li>
                         <li>Для папок нужен флаг <code>-r</code> (рекурсивно): <code>cp -r dir1/ dir2/</code></li>
