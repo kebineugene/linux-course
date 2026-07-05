@@ -38,11 +38,19 @@
 
 **[Открыть курс →](https://kebineugene.github.io/linux-course/)**
 
-##  Локальный запуск (офлайн)
+## 💻 Локальный запуск
 
-### Вариант 1: Просто открыть файл
-Откройте `index.html` в браузере.
-
-### Вариант 2: Через Python
 ```bash
 python3 start_course.py
+```
+
+Или запусти `linux-course.exe` (Windows).
+
+## 📄 Лицензия
+
+MIT License — используйте свободно.
+
+## 👤 Автор
+
+Eugene Kebin
+```
