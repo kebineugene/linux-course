@@ -771,3 +771,45 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.4);
 }
+/* ===== GIF-ДЕМОНСТРАЦИИ ===== */
+.demo-block {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-blue);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.15);
+}
+
+.demo-block h4 {
+    color: var(--accent-blue);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.demo-gif {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    display: block;
+    margin: 0 auto;
+}
+
+.demo-caption {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.demo-tip {
+    background: rgba(74, 222, 128, 0.1);
+    border-left: 3px solid var(--accent-green);
+    padding: 0.75rem;
+    margin-top: 1rem;
+    border-radius: 4px;
+    text-align: left;
+    font-size: 0.9rem;
+}
